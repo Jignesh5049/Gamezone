@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { FieldLabel, Input, Select, Textarea } from '@/components/ui/input';
 import { useGameZone } from '@/context/gamezone-context';
+import { createBooking, listBookings, updateBookingStatus } from '@/lib/demo-store';
 import {
   formatISTDateTime,
   istDateTimeLocalInputValue,
@@ -16,10 +17,15 @@ import {
 import type { BookingRecord } from '@/lib/types';
 
 export default function BookingsPage() {
-  const { data, openStartModal, notify } = useGameZone();
-  const [bookings, setBookings] = React.useState<BookingRecord[]>([]);
+  const { data, openStartModal, refresh, notify } = useGameZone();
   const [statusFilter, setStatusFilter] = React.useState('confirmed');
-  const [loading, setLoading] = React.useState(true);
+  const [tick, setTick] = React.useState(0);
+
+  const bookings = React.useMemo(() => {
+    void data;
+    void tick;
+    return listBookings(statusFilter);
+  }, [data, statusFilter, tick]);
 
   const [modalOpen, setModalOpen] = React.useState(false);
   const [selectedStations, setSelectedStations] = React.useState<string[]>([]);
@@ -29,32 +35,6 @@ export default function BookingsPage() {
   const [durationMinutes, setDurationMinutes] = React.useState(60);
   const [notes, setNotes] = React.useState('');
   const [saving, setSaving] = React.useState(false);
-
-  const loadBookings = React.useCallback(async () => {
-    const res = await fetch(`/api/bookings?status=${statusFilter}`, {
-      cache: 'no-store',
-    });
-    const json = (await res.json()) as { bookings: BookingRecord[] };
-    setBookings(json.bookings || []);
-    setLoading(false);
-  }, [statusFilter]);
-
-  React.useEffect(() => {
-    let active = true;
-    fetch(`/api/bookings?status=${statusFilter}`, { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((json: { bookings: BookingRecord[] }) => {
-        if (!active) return;
-        setBookings(json.bookings || []);
-        setLoading(false);
-      })
-      .catch(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [statusFilter, data.activeSessions.length]);
 
   const toggleStation = (id: string) => {
     setSelectedStations((prev) =>
@@ -70,41 +50,32 @@ export default function BookingsPage() {
     }
     setSaving(true);
     try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          stationIds: selectedStations,
-          scheduledStartAt: parseISTLocalInputToUTC(startLocal),
-          durationMinutes: Number(durationMinutes),
-          notes: notes || null,
-        }),
+      const res = createBooking({
+        stationIds: selectedStations,
+        scheduledStartAt: parseISTLocalInputToUTC(startLocal),
+        durationMinutes: Number(durationMinutes),
+        notes: notes || null,
       });
-      const json = (await res.json()) as { error?: string };
       if (!res.ok) {
-        notify(json.error || 'Could not create booking', 'error');
+        notify(res.error || 'Could not create booking', 'error');
         return;
       }
       notify('Reservation confirmed', 'success');
       setModalOpen(false);
       setNotes('');
       setSelectedStations([]);
-      loadBookings();
+      setTick((t) => t + 1);
+      await refresh();
     } finally {
       setSaving(false);
     }
   };
 
   const handleCancelBooking = async (b: BookingRecord) => {
-    const res = await fetch(`/api/bookings/${b.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'cancelled' }),
-    });
-    if (res.ok) {
-      notify(`Cancelled reservation ${b.booking_code}`, 'info');
-      loadBookings();
-    }
+    updateBookingStatus(b.id, 'cancelled');
+    notify(`Cancelled reservation ${b.booking_code}`, 'info');
+    setTick((t) => t + 1);
+    await refresh();
   };
 
   return (
@@ -133,7 +104,6 @@ export default function BookingsPage() {
         </Button>
       </div>
 
-      {/* Filter Tabs */}
       <div className="flex items-center gap-2">
         {(['confirmed', 'checked_in', 'cancelled', 'all'] as const).map((s) => (
           <button
@@ -165,13 +135,7 @@ export default function BookingsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EAE5D7]">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-[#646D67]">
-                    Loading bookings...
-                  </td>
-                </tr>
-              ) : bookings.length === 0 ? (
+              {bookings.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-10 text-center text-[#646D67]">
                     <CalendarClock className="h-7 w-7 mx-auto mb-2 text-[#A8B8A0]" />
@@ -244,7 +208,6 @@ export default function BookingsPage() {
         </div>
       </Card>
 
-      {/* New Booking Modal */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -310,7 +273,7 @@ export default function BookingsPage() {
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Special setup, birthday group, extra controllers..."
+              placeholder="Special setup, extra controllers..."
             />
           </div>
 
