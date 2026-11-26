@@ -8,14 +8,25 @@ import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { FieldLabel, Input, Select, Textarea } from '@/components/ui/input';
 import { useGameZone } from '@/context/gamezone-context';
+import {
+  completeMaintenance,
+  createMaintenance,
+  listMaintenance,
+  updateStation,
+} from '@/lib/demo-store';
 import { formatISTDateTime } from '@/lib/timezone';
 import { formatINR } from '@/lib/utils';
 import type { GamingStation, MaintenanceRecord } from '@/lib/types';
 
 export default function InventoryPage() {
   const { data, refresh, notify } = useGameZone();
+  const [tick, setTick] = React.useState(0);
+  const records = React.useMemo(() => {
+    void data;
+    void tick;
+    return listMaintenance();
+  }, [data, tick]);
 
-  const [records, setRecords] = React.useState<MaintenanceRecord[]>([]);
   const [maintOpen, setMaintOpen] = React.useState(false);
   const [mStationId, setMStationId] = React.useState(data.stations[0]?.id || '');
   const [mTitle, setMTitle] = React.useState('');
@@ -31,36 +42,13 @@ export default function InventoryPage() {
   const [stPurchaseCost, setStPurchaseCost] = React.useState('');
   const [stNotes, setStNotes] = React.useState('');
 
-  const loadMaint = React.useCallback(async () => {
-    const res = await fetch('/api/maintenance', { cache: 'no-store' });
-    const json = (await res.json()) as { records: MaintenanceRecord[] };
-    setRecords(json.records || []);
-  }, []);
-
-  React.useEffect(() => {
-    let active = true;
-    fetch('/api/maintenance', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((json: { records: MaintenanceRecord[] }) => {
-        if (active) setRecords(json.records || []);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
   const toggleStationStatus = async (
     st: GamingStation,
     nextStatus: 'available' | 'maintenance' | 'disabled'
   ) => {
-    const res = await fetch(`/api/stations/${st.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: nextStatus }),
-    });
-    const json = (await res.json()) as { error?: string };
+    const res = updateStation(st.id, { status: nextStatus });
     if (!res.ok) {
-      notify(json.error || 'Could not update station status', 'error');
+      notify(res.error || 'Could not update station status', 'error');
       return;
     }
     notify(`${st.name} marked as ${nextStatus}`, 'success');
@@ -69,21 +57,16 @@ export default function InventoryPage() {
 
   const handleLogMaintenance = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch('/api/maintenance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        stationId: mStationId,
-        issueTitle: mTitle,
-        description: mDesc || null,
-        cost: Number(mCost) || 0,
-        technician: mTech || null,
-        setStationMaintenance: mSetMaint,
-      }),
+    const res = createMaintenance({
+      stationId: mStationId,
+      issueTitle: mTitle,
+      description: mDesc || null,
+      cost: Number(mCost) || 0,
+      technician: mTech || null,
+      setStationMaintenance: mSetMaint,
     });
-    const json = (await res.json()) as { error?: string };
     if (!res.ok) {
-      notify(json.error || 'Failed to log maintenance', 'error');
+      notify(res.error || 'Failed to log maintenance', 'error');
       return;
     }
     notify('Maintenance logged', 'success');
@@ -92,36 +75,26 @@ export default function InventoryPage() {
     setMDesc('');
     setMCost(0);
     setMTech('');
-    await loadMaint();
+    setTick((t) => t + 1);
     await refresh();
   };
 
   const handleCompleteMaint = async (rec: MaintenanceRecord) => {
-    const res = await fetch(`/api/maintenance/${rec.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'completed', restoreStationAvailable: true }),
-    });
-    if (res.ok) {
-      notify('Maintenance marked completed & station restored', 'success');
-      await loadMaint();
-      await refresh();
-    }
+    completeMaintenance(rec.id);
+    notify('Maintenance marked completed & station restored', 'success');
+    setTick((t) => t + 1);
+    await refresh();
   };
 
   const handleSaveStationEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editStation) return;
-    const res = await fetch(`/api/stations/${editStation.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: stName,
-        equipmentModel: stModel || null,
-        purchaseDate: stPurchaseDate || null,
-        purchaseCost: stPurchaseCost ? Number(stPurchaseCost) : null,
-        notes: stNotes || null,
-      }),
+    const res = updateStation(editStation.id, {
+      name: stName,
+      equipmentModel: stModel || null,
+      purchaseDate: stPurchaseDate || null,
+      purchaseCost: stPurchaseCost ? Number(stPurchaseCost) : null,
+      notes: stNotes || null,
     });
     if (res.ok) {
       notify('Equipment details updated', 'success');
@@ -138,7 +111,7 @@ export default function InventoryPage() {
             Inventory & Equipment Maintenance
           </h1>
           <p className="text-xs text-[#646D67] mt-0.5">
-            Track hardware assets, purchase details, maintenance state, and repair expenses
+            Track hardware assets, purchase details, maintenance state, and repair history
           </p>
         </div>
 
@@ -153,11 +126,10 @@ export default function InventoryPage() {
         </Button>
       </div>
 
-      {/* Equipment Asset Registry */}
       <Card className="overflow-hidden">
         <CardHeader
           title="Equipment Asset Registry"
-          subtitle="Stations under maintenance or disabled cannot accept new customer sessions"
+          subtitle="Stations under maintenance or disabled cannot accept new sessions"
         />
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
@@ -256,7 +228,6 @@ export default function InventoryPage() {
         </div>
       </Card>
 
-      {/* Maintenance History */}
       <Card className="overflow-hidden">
         <CardHeader title="Maintenance & Service History" />
         <div className="overflow-x-auto">
@@ -309,7 +280,6 @@ export default function InventoryPage() {
         </div>
       </Card>
 
-      {/* Log Maintenance Modal */}
       <Modal
         open={maintOpen}
         onClose={() => setMaintOpen(false)}
@@ -378,7 +348,6 @@ export default function InventoryPage() {
         </form>
       </Modal>
 
-      {/* Edit Equipment Modal */}
       <Modal
         open={Boolean(editStation)}
         onClose={() => setEditStation(null)}
