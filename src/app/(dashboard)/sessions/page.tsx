@@ -9,19 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input, Select } from '@/components/ui/input';
 import { useGameZone } from '@/context/gamezone-context';
+import { downloadCsvFile, listFilteredSessions } from '@/lib/demo-store';
 import { formatISTDateTime } from '@/lib/timezone';
 import { formatMinutesReadable } from '@/lib/timer';
 import { formatINR } from '@/lib/utils';
-import type { SessionRecord } from '@/lib/types';
 
 function SessionsContent() {
   const searchParams = useSearchParams();
-  const {
-    data,
-    openSessionDetailModal,
-    openCheckoutModal,
-    extendSession,
-  } = useGameZone();
+  const { data, openSessionDetailModal, openCheckoutModal, extendSession } = useGameZone();
 
   const [preset, setPreset] = React.useState(searchParams.get('preset') || '30d');
   const [from, setFrom] = React.useState('');
@@ -32,56 +27,19 @@ function SessionsContent() {
     searchParams.get('paymentStatus') || 'all'
   );
   const [search, setSearch] = React.useState(searchParams.get('search') || '');
-  const [sessions, setSessions] = React.useState<SessionRecord[]>([]);
-  const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    let active = true;
-    const qs = new URLSearchParams({
+  const sessions = React.useMemo(() => {
+    void data;
+    return listFilteredSessions({
       preset,
+      from,
+      to,
       categoryId,
       stationId,
       paymentStatus,
       search,
     });
-    if (preset === 'custom' && from) qs.set('from', from);
-    if (preset === 'custom' && to) qs.set('to', to);
-
-    fetch(`/api/sessions?${qs.toString()}`, { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((json: { sessions: SessionRecord[] }) => {
-        if (!active) return;
-        setSessions(json.sessions || []);
-        setLoading(false);
-      })
-      .catch(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [
-    preset,
-    from,
-    to,
-    categoryId,
-    stationId,
-    paymentStatus,
-    search,
-    data.activeSessions.length,
-    data.todaySummary.todayCompletedSessions,
-  ]);
-
-  const exportUrl = `/api/exports?${new URLSearchParams({
-    type: 'sessions',
-    preset,
-    categoryId,
-    stationId,
-    paymentStatus,
-    search,
-    ...(preset === 'custom' && from ? { from } : {}),
-    ...(preset === 'custom' && to ? { to } : {}),
-  }).toString()}`;
+  }, [data, preset, from, to, categoryId, stationId, paymentStatus, search]);
 
   return (
     <div className="space-y-5">
@@ -95,15 +53,26 @@ function SessionsContent() {
           </p>
         </div>
 
-        <a href={exportUrl}>
-          <Button size="sm" variant="outline">
-            <Download className="h-3.5 w-3.5" />
-            Export CSV
-          </Button>
-        </a>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() =>
+            downloadCsvFile('sessions', {
+              preset,
+              from,
+              to,
+              categoryId,
+              stationId,
+              paymentStatus,
+              search,
+            })
+          }
+        >
+          <Download className="h-3.5 w-3.5" />
+          Export CSV
+        </Button>
       </div>
 
-      {/* Filters Bar */}
       <Card className="p-4 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
           <div className="relative">
@@ -171,7 +140,6 @@ function SessionsContent() {
         )}
       </Card>
 
-      {/* Sessions Table */}
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
@@ -188,13 +156,7 @@ function SessionsContent() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EAE5D7]">
-              {loading ? (
-                <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-[#646D67]">
-                    Loading sessions...
-                  </td>
-                </tr>
-              ) : sessions.length === 0 ? (
+              {sessions.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-8 text-center text-[#646D67]">
                     No sessions match the selected filters.
