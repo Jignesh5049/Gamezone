@@ -1,13 +1,23 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  buildClientBootstrap,
+  extendSessionById,
+  pauseSessionById,
+  resetDemoState,
+  resumeSessionById,
+} from '@/lib/demo-store';
+import {
+  clearStoredJwt,
+  type DemoJwtPayload,
+  getStoredJwt,
+  verifyDemoJwt,
+} from '@/lib/jwt';
 import { computeSessionMetrics } from '@/lib/timer';
 import { playAlertChime } from '@/lib/sound';
-import type {
-  BootstrapPayload,
-  ReceiptData,
-  SessionRecord,
-} from '@/lib/types';
+import type { BootstrapPayload, ReceiptData, StaffProfile } from '@/lib/types';
 
 export interface StartModalOptions {
   stationId?: string;
@@ -24,6 +34,7 @@ interface ToastItem {
 
 interface GameZoneContextValue {
   data: BootstrapPayload;
+  jwtPayload: DemoJwtPayload;
   nowMs: number;
   isSyncing: boolean;
   refresh: () => Promise<void>;
@@ -31,6 +42,8 @@ interface GameZoneContextValue {
   pauseSession: (sessionId: string) => Promise<void>;
   resumeSession: (sessionId: string) => Promise<void>;
   extendSession: (sessionId: string, minutes: number) => Promise<void>;
+  resetDemo: () => void;
+  logout: () => void;
   openStartModal: (opts?: StartModalOptions) => void;
   closeStartModal: () => void;
   startModalOpts: StartModalOptions | null;
@@ -47,25 +60,28 @@ interface GameZoneContextValue {
   closeSessionDetailModal: () => void;
   detailSessionId: string | null;
   soundEnabled: boolean;
-  toggleSound: () => Promise<void>;
+  toggleSound: () => void;
 }
 
 const GameZoneContext = React.createContext<GameZoneContextValue | null>(null);
 
-export function GameZoneProvider({
-  initialBootstrap,
-  children,
-}: {
-  initialBootstrap: BootstrapPayload;
-  children: React.ReactNode;
-}) {
-  const [data, setData] = React.useState<BootstrapPayload>(initialBootstrap);
-  const [clockOffsetMs, setClockOffsetMs] = React.useState<number>(() => {
-    const serverMs = Date.parse(initialBootstrap.serverNow);
-    return Number.isNaN(serverMs) ? 0 : serverMs - Date.now();
-  });
-  const [nowMs, setNowMs] = React.useState<number>(() => Date.now() + clockOffsetMs);
-  const [isSyncing, setIsSyncing] = React.useState(false);
+function payloadToStaff(p: DemoJwtPayload): StaffProfile {
+  return {
+    staffId: 'stf_admin',
+    userId: p.sub,
+    email: p.email,
+    fullName: p.name,
+    role: p.role,
+    phone: null,
+    isActive: true,
+  };
+}
+
+export function GameZoneProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const [jwtPayload, setJwtPayload] = React.useState<DemoJwtPayload | null>(null);
+  const [data, setData] = React.useState<BootstrapPayload | null>(null);
+  const [nowMs, setNowMs] = React.useState<number>(() => Date.now());
 
   const [startModalOpts, setStartModalOpts] = React.useState<StartModalOptions | null>(null);
   const [checkoutSessionId, setCheckoutSessionId] = React.useState<string | null>(null);
@@ -77,10 +93,27 @@ export function GameZoneProvider({
 
   const alertedLevelsRef = React.useRef<Map<string, string>>(new Map());
 
+  React.useEffect(() => {
+    let active = true;
+    verifyDemoJwt(getStoredJwt()).then((verified) => {
+      if (!active) return;
+      if (!verified) {
+        clearStoredJwt();
+        router.replace('/login');
+        return;
+      }
+      setJwtPayload(verified);
+      setData(buildClientBootstrap(payloadToStaff(verified)));
+    });
+    return () => {
+      active = false;
+    };
+  }, [router]);
+
   const soundEnabled =
     localSoundOverride !== null
       ? localSoundOverride
-      : data.settings.sound_alerts !== 'false';
+      : data?.settings.sound_alerts !== 'false';
 
   const notify = React.useCallback(
     (message: string, tone: ToastItem['tone'] = 'success') => {
@@ -94,60 +127,31 @@ export function GameZoneProvider({
   );
 
   const refresh = React.useCallback(async () => {
-    setIsSyncing(true);
-    try {
-      const res = await fetch('/api/bootstrap', { cache: 'no-store' });
-      if (!res.ok) return;
-      const next = (await res.json()) as BootstrapPayload;
-      const serverMs = Date.parse(next.serverNow);
-      if (!Number.isNaN(serverMs)) {
-        const offset = serverMs - Date.now();
-        setClockOffsetMs(offset);
-        setNowMs(Date.now() + offset);
-      }
-      setData(next);
-    } catch {
-      // Transient offline state: timers keep running accurately from timestamps
-    } finally {
-      setIsSyncing(false);
-    }
-  }, []);
+    if (!jwtPayload) return;
+    setData(buildClientBootstrap(payloadToStaff(jwtPayload)));
+    setNowMs(Date.now());
+  }, [jwtPayload]);
 
-  // Global 1-second timer tick using server-adjusted timestamp
+  // Global 1-second timer tick using real system clock vs persisted ISO timestamps
   React.useEffect(() => {
     const interval = setInterval(() => {
-      setNowMs(Date.now() + clockOffsetMs);
+      setNowMs(Date.now());
     }, 1000);
-    return () => clearInterval(interval);
-  }, [clockOffsetMs]);
-
-  // Periodic background sync + tab visibility + reconnect recovery
-  React.useEffect(() => {
-    const syncInterval = setInterval(() => {
-      refresh();
-    }, 15000);
-
-    const handleVisibility = () => {
+    const onVis = () => {
       if (document.visibilityState === 'visible') {
-        refresh();
+        setNowMs(Date.now());
       }
     };
-    const handleOnline = () => {
-      refresh();
-    };
-
-    document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('online', handleOnline);
+    document.addEventListener('visibilitychange', onVis);
     return () => {
-      clearInterval(syncInterval);
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('online', handleOnline);
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVis);
     };
-  }, [refresh]);
+  }, []);
 
   // Alert sound monitor for expiring / expired sessions
   React.useEffect(() => {
-    if (!soundEnabled) return;
+    if (!soundEnabled || !data) return;
     const warnMins = Number(data.settings.warning_minutes ?? 10);
     const critMins = Number(data.settings.critical_minutes ?? 5);
 
@@ -161,70 +165,81 @@ export function GameZoneProvider({
         playAlertChime(m.alertLevel);
       }
     }
-  }, [data.activeSessions, data.settings, nowMs, soundEnabled]);
+  }, [data, nowMs, soundEnabled]);
 
-  const mutateSession = React.useCallback(
-    async (url: string, body?: Record<string, unknown>, successMsg?: string) => {
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: body ? JSON.stringify(body) : undefined,
-        });
-        const json = (await res.json()) as { error?: string; session?: SessionRecord };
-        if (!res.ok) {
-          notify(json.error || 'Action failed', 'error');
-          return;
-        }
-        if (successMsg) notify(successMsg, 'success');
-        await refresh();
-      } catch {
-        notify('Network error while updating session', 'error');
-      }
+  const pauseSession = React.useCallback(
+    async (sessionId: string) => {
+      const res = pauseSessionById(sessionId);
+      if (!res.ok) notify(res.error || 'Could not pause timer', 'error');
+      else notify('Timer paused', 'success');
+      await refresh();
     },
     [notify, refresh]
   );
 
-  const pauseSession = React.useCallback(
-    async (sessionId: string) => {
-      await mutateSession(`/api/sessions/${sessionId}/pause`, undefined, 'Timer paused');
-    },
-    [mutateSession]
-  );
-
   const resumeSession = React.useCallback(
     async (sessionId: string) => {
-      await mutateSession(`/api/sessions/${sessionId}/resume`, undefined, 'Timer resumed');
+      const res = resumeSessionById(sessionId);
+      if (!res.ok) notify(res.error || 'Could not resume timer', 'error');
+      else notify('Timer resumed', 'success');
+      await refresh();
     },
-    [mutateSession]
+    [notify, refresh]
   );
 
   const extendSession = React.useCallback(
     async (sessionId: string, minutes: number) => {
-      await mutateSession(
-        `/api/sessions/${sessionId}/extend`,
-        { minutes },
-        `Extended session by +${minutes}m`
-      );
+      const res = extendSessionById(sessionId, minutes);
+      if (!res.ok) notify(res.error || 'Could not extend session', 'error');
+      else notify(`Extended session by +${minutes}m`, 'success');
+      await refresh();
     },
-    [mutateSession]
+    [notify, refresh]
   );
 
-  const toggleSound = React.useCallback(async () => {
+  const resetDemo = React.useCallback(() => {
+    resetDemoState();
+    alertedLevelsRef.current.clear();
+    notify('Demo data reset to initial floor state', 'info');
+    if (jwtPayload) {
+      setData(buildClientBootstrap(payloadToStaff(jwtPayload)));
+      setNowMs(Date.now());
+    }
+  }, [jwtPayload, notify]);
+
+  const logout = React.useCallback(() => {
+    clearStoredJwt();
+    router.replace('/login');
+  }, [router]);
+
+  const toggleSound = React.useCallback(() => {
     const next = !soundEnabled;
     setLocalSoundOverride(next);
     notify(next ? 'Expiration sound alerts enabled' : 'Sound alerts muted', 'info');
   }, [notify, soundEnabled]);
 
+  if (!jwtPayload || !data) {
+    return (
+      <div className="min-h-screen bg-[#F5F2E9] flex items-center justify-center p-6">
+        <div className="rounded-xl border border-[#DFD9C8] bg-[#FCFBF7] px-6 py-4 text-xs font-medium text-[#5A635D]">
+          Verifying JWT session...
+        </div>
+      </div>
+    );
+  }
+
   const value: GameZoneContextValue = {
     data,
+    jwtPayload,
     nowMs,
-    isSyncing,
+    isSyncing: false,
     refresh,
     notify,
     pauseSession,
     resumeSession,
     extendSession,
+    resetDemo,
+    logout,
     openStartModal: (opts = {}) => setStartModalOpts(opts),
     closeStartModal: () => setStartModalOpts(null),
     startModalOpts,
@@ -247,7 +262,6 @@ export function GameZoneProvider({
   return (
     <GameZoneContext.Provider value={value}>
       {children}
-      {/* Toast Notifications */}
       {toasts.length > 0 && (
         <div className="fixed bottom-4 right-4 z-[60] flex flex-col gap-2 max-w-sm no-print">
           {toasts.map((t) => (
