@@ -5,13 +5,13 @@ import './globals.css';
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-plus-jakarta',
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500', '600'],
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   variable: '--font-jetbrains-mono',
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500', '600'],
 });
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export default function RootLayout({
       lang="en"
       className={`${plusJakarta.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-[#F5F2E9] text-[#202723]">{children}</body>
+      <body className="min-h-full bg-[#F5F2E9] text-[#1E2420]">{children}</body>
     </html>
   );
 }
