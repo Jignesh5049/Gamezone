@@ -105,12 +105,12 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-[#202723]">
-            Inventory & Equipment Maintenance
+          <h1 className="text-[28px] leading-[1.15] font-medium tracking-[-0.015em] text-[#1E2420]">
+            Inventory & maintenance
           </h1>
-          <p className="text-xs text-[#646D67] mt-0.5">
+          <p className="text-sm text-[#525B55] mt-1">
             Track hardware assets, purchase details, maintenance state, and repair history
           </p>
         </div>
@@ -122,41 +122,41 @@ export default function InventoryPage() {
             setMaintOpen(true);
           }}
         >
-          <Plus className="h-3.5 w-3.5" /> Log Maintenance
+          <Plus className="h-4 w-4" strokeWidth={1.5} /> Log maintenance
         </Button>
       </div>
 
       <Card className="overflow-hidden">
         <CardHeader
-          title="Equipment Asset Registry"
+          title="Equipment asset registry"
           subtitle="Stations under maintenance or disabled cannot accept new sessions"
         />
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#F5F2E9] border-b border-[#DFD9C8] text-[11px] uppercase tracking-wider text-[#5A635D]">
+            <thead className="bg-[#F5F2E9] border-b border-[#1E2420]/10 text-xs font-medium text-[#525B55]">
               <tr>
-                <th className="px-4 py-3 font-semibold">Station</th>
-                <th className="px-4 py-3 font-semibold">Model / Spec</th>
-                <th className="px-4 py-3 font-semibold">Purchase Date</th>
-                <th className="px-4 py-3 font-semibold">Purchase Cost</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold text-right">Controls</th>
+                <th className="px-4 py-3 font-medium">Station</th>
+                <th className="px-4 py-3 font-medium">Model / spec</th>
+                <th className="px-4 py-3 font-medium">Purchase date</th>
+                <th className="px-4 py-3 font-medium">Purchase cost</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium text-right">Controls</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EAE5D7]">
+            <tbody className="divide-y divide-[#1E2420]/8">
               {data.stations.map((st) => (
                 <tr key={st.id} className="hover:bg-[#F5F2E9]/50">
                   <td className="px-4 py-3">
-                    <div className="font-semibold text-[#202723]">{st.name}</div>
-                    <div className="text-[11px] text-[#646D67]">
-                      {st.code} • {st.category_name}
+                    <div className="font-medium text-[#1E2420]">{st.name}</div>
+                    <div className="text-xs text-[#707973]">
+                      {st.code} · {st.category_name}
                     </div>
                   </td>
-                  <td className="px-4 py-3">{st.equipment_model || '—'}</td>
-                  <td className="px-4 py-3 font-mono text-[11px]">
+                  <td className="px-4 py-3 text-[#525B55]">{st.equipment_model || '—'}</td>
+                  <td className="px-4 py-3 font-mono text-xs tabular-nums">
                     {st.purchase_date || '—'}
                   </td>
-                  <td className="px-4 py-3 font-mono">
+                  <td className="px-4 py-3 font-mono tabular-nums">
                     {st.purchase_cost ? formatINR(st.purchase_cost) : '—'}
                   </td>
                   <td className="px-4 py-3">
@@ -174,7 +174,7 @@ export default function InventoryPage() {
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="inline-flex items-center gap-1.5">
+                    <div className="inline-flex items-center gap-2">
                       <Button
                         size="xs"
                         variant="outline"
@@ -187,7 +187,7 @@ export default function InventoryPage() {
                           setStNotes(st.notes || '');
                         }}
                       >
-                        <Edit2 className="h-3 w-3" /> Edit
+                        <Edit2 className="h-4 w-4 text-[#707973]" strokeWidth={1.5} /> Edit
                       </Button>
                       {st.status !== 'occupied' && (
                         <>
@@ -197,7 +197,7 @@ export default function InventoryPage() {
                               variant="amber"
                               onClick={() => toggleStationStatus(st, 'maintenance')}
                             >
-                              <Wrench className="h-3 w-3" /> Maintenance
+                              <Wrench className="h-4 w-4" strokeWidth={1.5} /> Maintenance
                             </Button>
                           ) : (
                             <Button
@@ -205,7 +205,7 @@ export default function InventoryPage() {
                               variant="primary"
                               onClick={() => toggleStationStatus(st, 'available')}
                             >
-                              <CheckCircle2 className="h-3 w-3" /> Set Available
+                              <CheckCircle2 className="h-4 w-4" strokeWidth={1.5} /> Set available
                             </Button>
                           )}
                           {st.status !== 'disabled' && (
@@ -229,33 +229,35 @@ export default function InventoryPage() {
       </Card>
 
       <Card className="overflow-hidden">
-        <CardHeader title="Maintenance & Service History" />
+        <CardHeader title="Maintenance & service history" />
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#F5F2E9] border-b border-[#DFD9C8] text-[11px] uppercase tracking-wider text-[#5A635D]">
+            <thead className="bg-[#F5F2E9] border-b border-[#1E2420]/10 text-xs font-medium text-[#525B55]">
               <tr>
-                <th className="px-4 py-3 font-semibold">Station</th>
-                <th className="px-4 py-3 font-semibold">Issue / Work Done</th>
-                <th className="px-4 py-3 font-semibold">Technician</th>
-                <th className="px-4 py-3 font-semibold">Cost</th>
-                <th className="px-4 py-3 font-semibold">Date (IST)</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold text-right">Action</th>
+                <th className="px-4 py-3 font-medium">Station</th>
+                <th className="px-4 py-3 font-medium">Issue / work done</th>
+                <th className="px-4 py-3 font-medium">Technician</th>
+                <th className="px-4 py-3 font-medium">Cost</th>
+                <th className="px-4 py-3 font-medium">Date (IST)</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EAE5D7]">
+            <tbody className="divide-y divide-[#1E2420]/8">
               {records.map((rec) => (
                 <tr key={rec.id}>
-                  <td className="px-4 py-3 font-semibold">{rec.station_name}</td>
+                  <td className="px-4 py-3 font-medium text-[#1E2420]">{rec.station_name}</td>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-[#202723]">{rec.issue_title}</div>
+                    <div className="font-medium text-[#1E2420]">{rec.issue_title}</div>
                     {rec.description && (
-                      <div className="text-[11px] text-[#646D67]">{rec.description}</div>
+                      <div className="text-xs text-[#707973]">{rec.description}</div>
                     )}
                   </td>
                   <td className="px-4 py-3">{rec.technician || '—'}</td>
-                  <td className="px-4 py-3 font-mono font-semibold">{formatINR(rec.cost)}</td>
-                  <td className="px-4 py-3 font-mono text-[11px]">
+                  <td className="px-4 py-3 font-mono font-medium tabular-nums">
+                    {formatINR(rec.cost)}
+                  </td>
+                  <td className="px-4 py-3 font-mono text-xs tabular-nums">
                     {formatISTDateTime(rec.started_at)}
                   </td>
                   <td className="px-4 py-3">
@@ -269,7 +271,7 @@ export default function InventoryPage() {
                   <td className="px-4 py-3 text-right">
                     {rec.status !== 'completed' && (
                       <Button size="xs" onClick={() => handleCompleteMaint(rec)}>
-                        Mark Completed
+                        Mark completed
                       </Button>
                     )}
                   </td>
@@ -283,11 +285,11 @@ export default function InventoryPage() {
       <Modal
         open={maintOpen}
         onClose={() => setMaintOpen(false)}
-        title="Log Equipment Maintenance"
+        title="Log equipment maintenance"
       >
-        <form onSubmit={handleLogMaintenance} className="space-y-3.5">
+        <form onSubmit={handleLogMaintenance} className="space-y-4">
           <div>
-            <FieldLabel>Gaming Station</FieldLabel>
+            <FieldLabel>Gaming station</FieldLabel>
             <Select value={mStationId} onChange={(e) => setMStationId(e.target.value)}>
               {data.stations.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -297,17 +299,17 @@ export default function InventoryPage() {
             </Select>
           </div>
           <div>
-            <FieldLabel>Issue / Service Title</FieldLabel>
+            <FieldLabel>Issue / service title</FieldLabel>
             <Input
               required
               value={mTitle}
               onChange={(e) => setMTitle(e.target.value)}
-              placeholder="e.g., Controller drift replacement / Felt brushing"
+              placeholder="Controller drift repair or felt brushing"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <FieldLabel>Repair Cost (₹)</FieldLabel>
+              <FieldLabel>Repair cost (₹)</FieldLabel>
               <Input
                 type="number"
                 min={0}
@@ -336,14 +338,14 @@ export default function InventoryPage() {
                 onChange={(e) => setMSetMaint(e.target.checked)}
                 className="accent-[#285943]"
               />
-              Set station status to Under Maintenance (blocks new rentals)
+              Set station status to under maintenance (blocks new rentals)
             </label>
           </div>
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#EAE5D7]">
+          <div className="flex justify-end gap-2 pt-3 border-t border-[#1E2420]/8">
             <Button variant="outline" onClick={() => setMaintOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit">Log Maintenance</Button>
+            <Button type="submit">Log maintenance</Button>
           </div>
         </form>
       </Modal>
@@ -353,18 +355,18 @@ export default function InventoryPage() {
         onClose={() => setEditStation(null)}
         title={`Edit ${editStation?.name || 'Station'}`}
       >
-        <form onSubmit={handleSaveStationEdit} className="space-y-3.5">
+        <form onSubmit={handleSaveStationEdit} className="space-y-4">
           <div>
-            <FieldLabel>Station Name</FieldLabel>
+            <FieldLabel>Station name</FieldLabel>
             <Input required value={stName} onChange={(e) => setStName(e.target.value)} />
           </div>
           <div>
-            <FieldLabel>Equipment Model</FieldLabel>
+            <FieldLabel>Equipment model</FieldLabel>
             <Input value={stModel} onChange={(e) => setStModel(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <FieldLabel>Purchase Date</FieldLabel>
+              <FieldLabel>Purchase date</FieldLabel>
               <Input
                 type="date"
                 value={stPurchaseDate}
@@ -372,7 +374,7 @@ export default function InventoryPage() {
               />
             </div>
             <div>
-              <FieldLabel>Purchase Cost (₹)</FieldLabel>
+              <FieldLabel>Purchase cost (₹)</FieldLabel>
               <Input
                 type="number"
                 min={0}
@@ -385,11 +387,11 @@ export default function InventoryPage() {
             <FieldLabel>Notes</FieldLabel>
             <Textarea rows={2} value={stNotes} onChange={(e) => setStNotes(e.target.value)} />
           </div>
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#EAE5D7]">
+          <div className="flex justify-end gap-2 pt-3 border-t border-[#1E2420]/8">
             <Button variant="outline" onClick={() => setEditStation(null)}>
               Cancel
             </Button>
-            <Button type="submit">Save Details</Button>
+            <Button type="submit">Save details</Button>
           </div>
         </form>
       </Modal>

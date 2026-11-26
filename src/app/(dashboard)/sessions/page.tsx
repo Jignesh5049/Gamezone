@@ -42,14 +42,14 @@ function SessionsContent() {
   }, [data, preset, from, to, categoryId, stationId, paymentStatus, search]);
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-[#202723]">
-            All Sessions & Billing History
+          <h1 className="text-[28px] leading-[1.15] font-medium tracking-[-0.015em] text-[#1E2420]">
+            All sessions
           </h1>
-          <p className="text-xs text-[#646D67] mt-0.5">
-            Audit, extend, end, cancel, settle pending balances, or export session logs
+          <p className="text-sm text-[#525B55] mt-1">
+            Review, extend, end, cancel, settle pending balances, or export session logs
           </p>
         </div>
 
@@ -68,34 +68,37 @@ function SessionsContent() {
             })
           }
         >
-          <Download className="h-3.5 w-3.5" />
+          <Download className="h-4 w-4 text-[#707973]" strokeWidth={1.5} />
           Export CSV
         </Button>
       </div>
 
       <Card className="p-4 space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <div className="relative">
-            <Search className="h-3.5 w-3.5 text-[#8E9690] absolute left-3 top-2.5" />
+            <Search
+              className="h-4 w-4 text-[#707973] absolute left-3 top-2.5"
+              strokeWidth={1.5}
+            />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search session ID or station..."
-              className="pl-8"
+              placeholder="Search session ID or station"
+              className="pl-9"
             />
           </div>
 
           <Select value={preset} onChange={(e) => setPreset(e.target.value)}>
             <option value="today">Today</option>
             <option value="yesterday">Yesterday</option>
-            <option value="7d">Last 7 Days</option>
-            <option value="30d">Last 30 Days</option>
-            <option value="all">All Time</option>
-            <option value="custom">Custom Date Range</option>
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="all">All time</option>
+            <option value="custom">Custom date range</option>
           </Select>
 
           <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-            <option value="all">All Game Categories</option>
+            <option value="all">All game categories</option>
             {data.categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -104,7 +107,7 @@ function SessionsContent() {
           </Select>
 
           <Select value={stationId} onChange={(e) => setStationId(e.target.value)}>
-            <option value="all">All Stations</option>
+            <option value="all">All stations</option>
             {data.stations.map((st) => (
               <option key={st.id} value={st.id}>
                 {st.name}
@@ -113,23 +116,23 @@ function SessionsContent() {
           </Select>
 
           <Select value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}>
-            <option value="all">All Payment Statuses</option>
+            <option value="all">All payment statuses</option>
             <option value="paid">Paid</option>
-            <option value="partial">Partially Paid</option>
-            <option value="unpaid">Unpaid / Pending</option>
+            <option value="partial">Partially paid</option>
+            <option value="unpaid">Unpaid / pending</option>
           </Select>
         </div>
 
         {preset === 'custom' && (
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-xs text-[#646D67]">From:</span>
+            <span className="text-xs text-[#707973]">From</span>
             <Input
               type="date"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
               className="w-40"
             />
-            <span className="text-xs text-[#646D67]">To:</span>
+            <span className="text-xs text-[#707973]">To</span>
             <Input
               type="date"
               value={to}
@@ -143,23 +146,23 @@ function SessionsContent() {
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#F5F2E9] border-b border-[#DFD9C8] text-[11px] uppercase tracking-wider text-[#5A635D]">
+            <thead className="bg-[#F5F2E9] border-b border-[#1E2420]/10 text-xs font-medium text-[#525B55]">
               <tr>
-                <th className="px-4 py-3 font-semibold">Session</th>
-                <th className="px-4 py-3 font-semibold">Station</th>
-                <th className="px-4 py-3 font-semibold">Start / End (IST)</th>
-                <th className="px-4 py-3 font-semibold">Duration / Paused</th>
-                <th className="px-4 py-3 font-semibold">Amount</th>
-                <th className="px-4 py-3 font-semibold">Payment</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                <th className="px-4 py-3 font-medium">Session</th>
+                <th className="px-4 py-3 font-medium">Station</th>
+                <th className="px-4 py-3 font-medium">Start / end (IST)</th>
+                <th className="px-4 py-3 font-medium">Duration / paused</th>
+                <th className="px-4 py-3 font-medium">Amount</th>
+                <th className="px-4 py-3 font-medium">Payment</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EAE5D7]">
+            <tbody className="divide-y divide-[#1E2420]/8">
               {sessions.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-[#646D67]">
-                    No sessions match the selected filters.
+                  <td colSpan={8} className="px-4 py-8 text-center text-[#707973]">
+                    No sessions match these filters
                   </td>
                 </tr>
               ) : (
@@ -167,18 +170,18 @@ function SessionsContent() {
                   const isRunning = ses.status === 'active' || ses.status === 'paused';
                   return (
                     <tr key={ses.id} className="hover:bg-[#F5F2E9]/50">
-                      <td className="px-4 py-3 font-mono font-semibold text-[#202723]">
+                      <td className="px-4 py-3 font-mono font-medium text-[#1E2420]">
                         {ses.session_code}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-[#202723]">{ses.station_name}</div>
-                        <div className="text-[11px] text-[#646D67]">{ses.category_name}</div>
+                        <div className="font-medium text-[#1E2420]">{ses.station_name}</div>
+                        <div className="text-xs text-[#707973]">{ses.category_name}</div>
                       </td>
-                      <td className="px-4 py-3 font-mono text-[11px] text-[#5A635D]">
+                      <td className="px-4 py-3 font-mono text-xs text-[#525B55] tabular-nums">
                         <div>{formatISTDateTime(ses.started_at)}</div>
                         <div>{ses.ended_at ? formatISTDateTime(ses.ended_at) : 'In progress'}</div>
                       </td>
-                      <td className="px-4 py-3 font-mono text-[11px]">
+                      <td className="px-4 py-3 font-mono text-xs tabular-nums">
                         <div>
                           {ses.status === 'completed'
                             ? formatMinutesReadable(ses.billable_minutes)
@@ -192,10 +195,10 @@ function SessionsContent() {
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3 font-mono font-semibold">
+                      <td className="px-4 py-3 font-mono font-medium tabular-nums">
                         <div>{formatINR(ses.final_amount)}</div>
                         {ses.discount_amount > 0 && (
-                          <div className="text-[10px] text-[#285943]">
+                          <div className="text-xs text-[#285943]">
                             -{formatINR(ses.discount_amount)} disc
                           </div>
                         )}
@@ -240,7 +243,7 @@ function SessionsContent() {
                                 onClick={() => extendSession(ses.id, 30)}
                                 title="Extend +30m"
                               >
-                                <Plus className="h-3 w-3" />
+                                <Plus className="h-4 w-4" strokeWidth={1.5} />
                                 30m
                               </Button>
                               <Button
@@ -248,7 +251,7 @@ function SessionsContent() {
                                 variant="danger"
                                 onClick={() => openCheckoutModal(ses.id)}
                               >
-                                <Square className="h-3 w-3" />
+                                <Square className="h-4 w-4" strokeWidth={1.5} />
                                 End
                               </Button>
                             </>
@@ -258,7 +261,7 @@ function SessionsContent() {
                             variant="outline"
                             onClick={() => openSessionDetailModal(ses.id)}
                           >
-                            <Eye className="h-3 w-3" />
+                            <Eye className="h-4 w-4" strokeWidth={1.5} />
                             Details
                           </Button>
                         </div>
@@ -277,7 +280,7 @@ function SessionsContent() {
 
 export default function SessionsPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-sm text-[#646D67]">Loading sessions...</div>}>
+    <Suspense fallback={<div className="p-6 text-sm text-[#707973]">Loading sessions</div>}>
       <SessionsContent />
     </Suspense>
   );

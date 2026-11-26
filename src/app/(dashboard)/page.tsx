@@ -85,32 +85,32 @@ export default function GamingStationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-[#202723]">
-            Gaming Stations
+          <h1 className="text-[28px] leading-[1.15] font-medium tracking-[-0.015em] text-[#1E2420]">
+            Gaming stations
           </h1>
-          <p className="text-xs text-[#646D67] mt-0.5">
-            Every station operates with an independent live timer and real-time billing tracker
+          <p className="text-sm text-[#525B55] mt-1">
+            Independent live timers and real-time billing across all stations
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" onClick={() => openStartModal()}>
-            <Play className="h-3.5 w-3.5" />
-            Add Session
+            <Play className="h-4 w-4" strokeWidth={1.5} />
+            Add session
           </Button>
           <Button
             size="sm"
             variant="outline"
             onClick={() => openStartModal({ groupMode: true })}
           >
-            <Users className="h-3.5 w-3.5" />
-            Group Booking
+            <Users className="h-4 w-4 text-[#707973]" strokeWidth={1.5} />
+            Group booking
           </Button>
           <Button size="sm" variant="outline" onClick={() => setAddCatOpen(true)}>
-            <FolderPlus className="h-3.5 w-3.5" />
-            Add Game Category
+            <FolderPlus className="h-4 w-4 text-[#707973]" strokeWidth={1.5} />
+            Add category
           </Button>
           <Button
             size="sm"
@@ -120,67 +120,67 @@ export default function GamingStationsPage() {
               setAddStationOpen(true);
             }}
           >
-            <Plus className="h-3.5 w-3.5" />
-            Add Station
+            <Plus className="h-4 w-4 text-[#707973]" strokeWidth={1.5} />
+            Add station
           </Button>
         </div>
       </div>
 
       {/* Compact Floor & Daily Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="rounded-xl border border-[#DFD9C8] bg-[#FCFBF7] px-4 py-3">
-          <div className="text-[11px] font-semibold text-[#646D67]">Occupied</div>
-          <div className="font-mono text-xl font-bold text-[#C65D50] mt-0.5 tabular-nums">
+        <div className="rounded-xl border border-[#1E2420]/10 bg-[#FCFBF7] p-4">
+          <div className="text-xs text-[#707973]">Occupied</div>
+          <div className="font-mono text-[28px] leading-none font-medium text-[#1E2420] mt-2 tabular-nums">
             {summary.occupiedStations}/{summary.totalStations}
           </div>
         </div>
-        <div className="rounded-xl border border-[#DFD9C8] bg-[#FCFBF7] px-4 py-3">
-          <div className="text-[11px] font-semibold text-[#646D67]">Available</div>
-          <div className="font-mono text-xl font-bold text-[#285943] mt-0.5 tabular-nums">
+        <div className="rounded-xl border border-[#1E2420]/10 bg-[#FCFBF7] p-4">
+          <div className="text-xs text-[#707973]">Available</div>
+          <div className="font-mono text-[28px] leading-none font-medium text-[#1E2420] mt-2 tabular-nums">
             {summary.availableStations}
           </div>
         </div>
-        <div className="rounded-xl border border-[#DFD9C8] bg-[#FCFBF7] px-4 py-3">
-          <div className="text-[11px] font-semibold text-[#646D67]">Active Timers</div>
-          <div className="font-mono text-xl font-bold text-[#D89B45] mt-0.5 tabular-nums">
+        <div className="rounded-xl border border-[#1E2420]/10 bg-[#FCFBF7] p-4">
+          <div className="text-xs text-[#707973]">Active timers</div>
+          <div className="font-mono text-[28px] leading-none font-medium text-[#1E2420] mt-2 tabular-nums">
             {summary.activeSessionsCount}
           </div>
         </div>
-        <div className="rounded-xl border border-[#DFD9C8] bg-[#FCFBF7] px-4 py-3">
-          <div className="text-[11px] font-semibold text-[#646D67]">Today&apos;s Revenue</div>
-          <div className="font-mono text-xl font-bold text-[#285943] mt-0.5 tabular-nums">
+        <div className="rounded-xl border border-[#1E2420]/10 bg-[#FCFBF7] p-4">
+          <div className="text-xs text-[#707973]">Today&apos;s revenue</div>
+          <div className="font-mono text-[28px] leading-none font-medium text-[#285943] mt-2 tabular-nums">
             {formatINR(summary.todayRevenue)}
           </div>
         </div>
       </div>
 
       {summary.pendingPaymentsCount > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#D89B45]/45 bg-[#D89B45]/12 px-4 py-2.5 text-xs">
-          <span className="inline-flex items-center gap-2 font-medium text-[#202723]">
-            <AlertTriangle className="h-4 w-4 text-[#8E5B13]" />
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#B77922]/35 bg-[#B77922]/10 px-4 py-3 text-xs">
+          <span className="inline-flex items-center gap-2 font-medium text-[#1E2420]">
+            <AlertTriangle className="h-4 w-4 text-[#8E5B13]" strokeWidth={1.5} />
             {summary.pendingPaymentsCount} session{summary.pendingPaymentsCount > 1 ? 's' : ''} with pending payment ({formatINR(summary.pendingPaymentsAmount)})
           </span>
           <Link href="/sessions?paymentStatus=unpaid">
             <Button size="xs" variant="amber">
-              View Pending
+              View pending
             </Button>
           </Link>
         </div>
       )}
 
       {/* Category & Status Filters */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#DFD9C8] bg-[#FCFBF7] px-4 py-3">
-        <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#1E2420]/10 bg-[#FCFBF7] px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setSelectedCat('all')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer ${
+            className={`h-8 rounded-[8px] px-3 text-xs font-medium cursor-pointer transition-colors duration-150 ${
               selectedCat === 'all'
-                ? 'bg-[#202723] text-[#F5F2E9]'
-                : 'bg-[#F5F2E9] text-[#5A635D] hover:bg-[#EDE9DD]'
+                ? 'bg-[#1E2420] text-[#F2EFE7]'
+                : 'bg-[#F5F2E9] text-[#525B55] hover:bg-[#EDE9DD]'
             }`}
           >
-            All Games ({data.stations.length})
+            All games ({data.stations.length})
           </button>
           {data.categories.map((cat) => {
             const count = data.stations.filter((s) => s.category_id === cat.id).length;
@@ -189,10 +189,10 @@ export default function GamingStationsPage() {
                 type="button"
                 key={cat.id}
                 onClick={() => setSelectedCat(cat.id)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer ${
+                className={`h-8 rounded-[8px] px-3 text-xs font-medium cursor-pointer transition-colors duration-150 ${
                   selectedCat === cat.id
                     ? 'bg-[#285943] text-[#FCFBF7]'
-                    : 'bg-[#F5F2E9] text-[#5A635D] hover:bg-[#EDE9DD]'
+                    : 'bg-[#F5F2E9] text-[#525B55] hover:bg-[#EDE9DD]'
                 }`}
               >
                 {cat.name} ({count})
@@ -207,16 +207,16 @@ export default function GamingStationsPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="h-8 text-xs"
           >
-            <option value="all">All Statuses</option>
-            <option value="available">Available Only</option>
-            <option value="occupied">Occupied Only</option>
-            <option value="maintenance">Maintenance / Disabled</option>
+            <option value="all">All statuses</option>
+            <option value="available">Available only</option>
+            <option value="occupied">Occupied only</option>
+            <option value="maintenance">Maintenance / disabled</option>
           </Select>
         </div>
       </div>
 
       {/* Stations Grouped by Category */}
-      <div className="space-y-6">
+      <div className="space-y-8">
         {visibleCategories.map((cat) => {
           const stations = data.stations.filter((st) => {
             if (st.category_id !== cat.id) return false;
@@ -230,15 +230,15 @@ export default function GamingStationsPage() {
           if (stations.length === 0) return null;
 
           return (
-            <section key={cat.id} className="space-y-3">
-              <div className="flex items-baseline justify-between border-b border-[#DFD9C8] pb-2">
+            <section key={cat.id} className="space-y-4">
+              <div className="flex items-baseline justify-between border-b border-[#1E2420]/10 pb-2">
                 <div>
-                  <h2 className="text-base font-bold text-[#202723]">{cat.name}</h2>
+                  <h2 className="text-base font-medium text-[#1E2420]">{cat.name}</h2>
                   {cat.description && (
-                    <p className="text-xs text-[#646D67]">{cat.description}</p>
+                    <p className="text-xs text-[#707973] mt-0.5">{cat.description}</p>
                   )}
                 </div>
-                <span className="font-mono text-xs text-[#5A635D]">
+                <span className="font-mono text-xs text-[#525B55] tabular-nums">
                   {stations.filter((x) => x.status === 'available').length} available /{' '}
                   {stations.length} total
                 </span>
@@ -258,10 +258,10 @@ export default function GamingStationsPage() {
       <Modal
         open={addStationOpen}
         onClose={() => setAddStationOpen(false)}
-        title="Add Gaming Station"
+        title="Add gaming station"
         subtitle="Create a new rentable table, console, or bay"
       >
-        <form onSubmit={handleCreateStation} className="space-y-3.5">
+        <form onSubmit={handleCreateStation} className="space-y-4">
           <div>
             <FieldLabel>Category</FieldLabel>
             <Select value={stCatId} onChange={(e) => setStCatId(e.target.value)}>
@@ -273,30 +273,30 @@ export default function GamingStationsPage() {
             </Select>
           </div>
           <div>
-            <FieldLabel>Station Name</FieldLabel>
+            <FieldLabel>Station name</FieldLabel>
             <Input
               required
               value={stName}
               onChange={(e) => setStName(e.target.value)}
-              placeholder="e.g., Pool Table 04"
+              placeholder="Pool Table 04"
             />
           </div>
           <div>
-            <FieldLabel hint="Leave blank for category rate">Custom Rate ₹ / 30m</FieldLabel>
+            <FieldLabel hint="Leave blank for category rate">Custom rate ₹ / 30m</FieldLabel>
             <Input
               type="number"
               min={0}
               value={stRate30}
               onChange={(e) => setStRate30(e.target.value)}
-              placeholder="e.g., 120"
+              placeholder="120"
             />
           </div>
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#EAE5D7]">
+          <div className="flex justify-end gap-2 pt-3 border-t border-[#1E2420]/8">
             <Button variant="outline" onClick={() => setAddStationOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? 'Adding...' : 'Create Station'}
+              {saving ? 'Adding' : 'Create station'}
             </Button>
           </div>
         </form>
@@ -306,21 +306,21 @@ export default function GamingStationsPage() {
       <Modal
         open={addCatOpen}
         onClose={() => setAddCatOpen(false)}
-        title="Add Game Category"
+        title="Add game category"
         subtitle="Add a new facility type such as VR Arena, Snooker, or Sim Racing"
       >
-        <form onSubmit={handleCreateCategory} className="space-y-3.5">
+        <form onSubmit={handleCreateCategory} className="space-y-4">
           <div>
-            <FieldLabel>Category Name</FieldLabel>
+            <FieldLabel>Category name</FieldLabel>
             <Input
               required
               value={catName}
               onChange={(e) => setCatName(e.target.value)}
-              placeholder="e.g., VR Racing Sim"
+              placeholder="VR Racing Sim"
             />
           </div>
           <div>
-            <FieldLabel>Default Rate per 30 Minutes (₹)</FieldLabel>
+            <FieldLabel>Default rate per 30 minutes (₹)</FieldLabel>
             <Input
               type="number"
               min={0}
@@ -337,12 +337,12 @@ export default function GamingStationsPage() {
               placeholder="Short description of this gaming zone"
             />
           </div>
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#EAE5D7]">
+          <div className="flex justify-end gap-2 pt-3 border-t border-[#1E2420]/8">
             <Button variant="outline" onClick={() => setAddCatOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? 'Creating...' : 'Create Category'}
+              {saving ? 'Creating' : 'Create category'}
             </Button>
           </div>
         </form>
