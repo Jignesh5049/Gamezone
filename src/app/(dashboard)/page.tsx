@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/modal';
 import { FieldLabel, Input, Select } from '@/components/ui/input';
 import { StationCard } from '@/components/stations/station-card';
 import { useGameZone } from '@/context/gamezone-context';
+import { createCategory, createStation } from '@/lib/demo-store';
 import { formatINR } from '@/lib/utils';
 
 export default function GamingStationsPage() {
@@ -18,13 +19,11 @@ export default function GamingStationsPage() {
   const [addStationOpen, setAddStationOpen] = React.useState(false);
   const [addCatOpen, setAddCatOpen] = React.useState(false);
 
-  // Add Station form
   const [stName, setStName] = React.useState('');
   const [stCatId, setStCatId] = React.useState(data.categories[0]?.id || '');
   const [stRate30, setStRate30] = React.useState('');
   const [saving, setSaving] = React.useState(false);
 
-  // Add Category form
   const [catName, setCatName] = React.useState('');
   const [catDesc, setCatDesc] = React.useState('');
   const [catRate30, setCatRate30] = React.useState('100');
@@ -35,19 +34,14 @@ export default function GamingStationsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch('/api/stations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          categoryId: stCatId || data.categories[0]?.id,
-          name: stName,
-          customRate30: stRate30 ? Number(stRate30) : null,
-          customRate60: stRate30 ? Number(stRate30) * 2 : null,
-        }),
+      const res = createStation({
+        categoryId: stCatId || data.categories[0]?.id,
+        name: stName,
+        customRate30: stRate30 ? Number(stRate30) : null,
+        customRate60: stRate30 ? Number(stRate30) * 2 : null,
       });
-      const json = (await res.json()) as { error?: string };
       if (!res.ok) {
-        notify(json.error || 'Failed to add station', 'error');
+        notify(res.error || 'Failed to add station', 'error');
         return;
       }
       notify(`Added station "${stName}"`, 'success');
@@ -64,19 +58,14 @@ export default function GamingStationsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch('/api/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: catName,
-          description: catDesc || null,
-          defaultRate30: Number(catRate30) || 100,
-          defaultRate60: (Number(catRate30) || 100) * 2,
-        }),
+      const res = createCategory({
+        name: catName,
+        description: catDesc || null,
+        defaultRate30: Number(catRate30) || 100,
+        defaultRate60: (Number(catRate30) || 100) * 2,
       });
-      const json = (await res.json()) as { error?: string };
       if (!res.ok) {
-        notify(json.error || 'Failed to add category', 'error');
+        notify(res.error || 'Failed to add category', 'error');
         return;
       }
       notify(`Added category "${catName}"`, 'success');
