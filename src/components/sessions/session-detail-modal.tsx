@@ -7,26 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FieldLabel, Input, Select } from '@/components/ui/input';
 import { useGameZone } from '@/context/gamezone-context';
+import {
+  cancelSessionById,
+  getSessionDetailById,
+  settlePaymentById,
+  updateSessionNotesById,
+} from '@/lib/demo-store';
 import { formatISTDateTime } from '@/lib/timezone';
 import { formatDurationHMS, formatMinutesReadable } from '@/lib/timer';
 import { formatINR } from '@/lib/utils';
-import type {
-  LiveTimerMetrics,
-  PaymentMethod,
-  PaymentRecord,
-  ReceiptData,
-  RentalCalculation,
-  SessionEventRecord,
-  SessionRecord,
-} from '@/lib/types';
-
-interface DetailResponse {
-  session: SessionRecord;
-  metrics: LiveTimerMetrics;
-  calculation: RentalCalculation;
-  events: SessionEventRecord[];
-  payments: PaymentRecord[];
-}
+import type { PaymentMethod } from '@/lib/types';
 
 export function SessionDetailModal() {
   const { detailSessionId, closeSessionDetailModal } = useGameZone();
@@ -49,68 +39,26 @@ function SessionDetailModalBody({
   onClose: () => void;
 }) {
   const { data, openReceiptModal, refresh, notify } = useGameZone();
+  const [tick, setTick] = React.useState(0);
+  const detail = React.useMemo(() => {
+    void tick;
+    return getSessionDetailById(sessionId);
+  }, [sessionId, tick]);
 
-  const [detail, setDetail] = React.useState<DetailResponse | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [notes, setNotes] = React.useState('');
+  const [notes, setNotes] = React.useState(detail?.session.notes || '');
   const [cancelReason, setCancelReason] = React.useState('');
   const [showCancelBox, setShowCancelBox] = React.useState(false);
-  const [settleAmount, setSettleAmount] = React.useState(0);
+  const [settleAmount, setSettleAmount] = React.useState(() =>
+    detail ? Math.max(0, detail.session.final_amount - detail.session.paid_amount) : 0
+  );
   const [settleMethod, setSettleMethod] = React.useState<PaymentMethod>('upi');
-  const [busy, setBusy] = React.useState(false);
-
-  const fetchAndApply = React.useCallback(async () => {
-    try {
-      const res = await fetch(`/api/sessions/${sessionId}`, { cache: 'no-store' });
-      const json = (await res.json()) as DetailResponse;
-      if (res.ok && json.session) {
-        setDetail(json);
-        setNotes(json.session.notes || '');
-        setSettleAmount(
-          Math.max(0, json.session.final_amount - json.session.paid_amount)
-        );
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [sessionId]);
-
-  React.useEffect(() => {
-    let active = true;
-    fetch(`/api/sessions/${sessionId}`, { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((json: DetailResponse) => {
-        if (!active || !json.session) return;
-        setDetail(json);
-        setNotes(json.session.notes || '');
-        setSettleAmount(
-          Math.max(0, json.session.final_amount - json.session.paid_amount)
-        );
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [sessionId]);
 
   const handleSaveDetails = async () => {
     if (!detail) return;
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/sessions/${detail.session.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes }),
-      });
-      if (res.ok) {
-        notify('Session info updated', 'success');
-        await fetchAndApply();
-        await refresh();
-      }
-    } finally {
-      setBusy(false);
+    if (updateSessionNotesById(detail.session.id, notes)) {
+      notify('Session notes updated', 'success');
+      setTick((t) => t + 1);
+      await refresh();
     }
   };
 
@@ -119,47 +67,27 @@ function SessionDetailModalBody({
       notify('Enter a cancellation reason', 'error');
       return;
     }
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/sessions/${detail.session.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'cancel', cancelReason }),
-      });
-      const json = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        notify(json.error || 'Could not cancel session', 'error');
-        return;
-      }
-      notify('Session cancelled and station freed', 'info');
-      onClose();
-      await refresh();
-    } finally {
-      setBusy(false);
+    const res = cancelSessionById(detail.session.id, cancelReason);
+    if (!res.ok) {
+      notify(res.error || 'Could not cancel session', 'error');
+      return;
     }
+    notify('Session cancelled and station freed', 'info');
+    onClose();
+    await refresh();
   };
 
   const handleSettlePayment = async () => {
     if (!detail || settleAmount <= 0) return;
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/sessions/${detail.session.id}/payments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: settleAmount, method: settleMethod }),
-      });
-      const json = (await res.json()) as { error?: string; receipt?: ReceiptData };
-      if (!res.ok) {
-        notify(json.error || 'Payment failed', 'error');
-        return;
-      }
-      notify(`Recorded ₹${settleAmount} payment`, 'success');
-      await fetchAndApply();
-      await refresh();
-      if (json.receipt) openReceiptModal(json.receipt);
-    } finally {
-      setBusy(false);
+    const res = settlePaymentById(detail.session.id, settleAmount, settleMethod);
+    if (!res.ok) {
+      notify(res.error || 'Payment failed', 'error');
+      return;
     }
+    notify(`Recorded ₹${settleAmount} payment`, 'success');
+    setTick((t) => t + 1);
+    await refresh();
+    if (res.receipt) openReceiptModal(res.receipt);
   };
 
   const balance = detail
@@ -178,8 +106,8 @@ function SessionDetailModalBody({
       }
       maxWidth="max-w-2xl"
     >
-      {loading || !detail ? (
-        <div className="py-10 text-center text-sm text-[#646D67]">Loading session...</div>
+      {!detail ? (
+        <div className="py-10 text-center text-sm text-[#646D67]">Session not found.</div>
       ) : (
         <div className="space-y-4 text-xs">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -225,15 +153,13 @@ function SessionDetailModalBody({
 
           <div className="rounded-lg border border-[#DFD9C8] bg-white p-3.5 space-y-2.5">
             <div className="font-semibold text-[#202723]">Session Notes</div>
-            <div>
-              <Input
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Notes..."
-              />
-            </div>
+            <Input
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Notes..."
+            />
             <div className="flex justify-end">
-              <Button size="sm" variant="outline" disabled={busy} onClick={handleSaveDetails}>
+              <Button size="sm" variant="outline" onClick={handleSaveDetails}>
                 Save Notes
               </Button>
             </div>
@@ -272,7 +198,7 @@ function SessionDetailModalBody({
                     <option value="other">Other</option>
                   </Select>
                 </div>
-                <Button size="sm" disabled={busy} onClick={handleSettlePayment}>
+                <Button size="sm" onClick={handleSettlePayment}>
                   <Banknote className="h-3.5 w-3.5" />
                   Collect Payment
                 </Button>
@@ -294,7 +220,7 @@ function SessionDetailModalBody({
                       <span className="font-semibold uppercase text-[10px] text-[#285943] mr-2">
                         {ev.event_type}
                       </span>
-                      <span className="text-[#5A635D]">by {ev.actor_name || 'Staff'}</span>
+                      <span className="text-[#5A635D]">by {ev.actor_name || 'Owner'}</span>
                     </div>
                     <span className="font-mono text-[11px] text-[#646D67]">
                       {formatISTDateTime(ev.created_at)}
@@ -320,14 +246,9 @@ function SessionDetailModalBody({
                   <Input
                     value={cancelReason}
                     onChange={(e) => setCancelReason(e.target.value)}
-                    placeholder="Reason for cancellation (e.g., power outage, customer left early)..."
+                    placeholder="Reason for cancellation..."
                   />
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    disabled={busy}
-                    onClick={handleCancelSession}
-                  >
+                  <Button size="sm" variant="danger" onClick={handleCancelSession}>
                     Confirm Cancel
                   </Button>
                 </div>

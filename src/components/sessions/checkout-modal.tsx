@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { FieldLabel, Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useGameZone } from '@/context/gamezone-context';
+import { checkoutSessionById, getCheckoutPreview } from '@/lib/demo-store';
 import { formatDurationHMS, formatMinutesReadable } from '@/lib/timer';
 import { formatISTDateTime } from '@/lib/timezone';
 import { formatINR } from '@/lib/utils';
-import type { CheckoutPreview, PaymentMethod, ReceiptData } from '@/lib/types';
+import type { PaymentMethod } from '@/lib/types';
 
 export function CheckoutModal() {
   const { checkoutSessionId, closeCheckoutModal } = useGameZone();
@@ -34,41 +35,20 @@ function CheckoutModalBody({
 }) {
   const { openReceiptModal, refresh, notify } = useGameZone();
 
-  const [preview, setPreview] = React.useState<CheckoutPreview | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const initial = React.useMemo(() => getCheckoutPreview(sessionId), [sessionId]);
+  const preview = initial.preview ?? null;
+
   const [additionalCharges, setAdditionalCharges] = React.useState(0);
   const [discountAmount, setDiscountAmount] = React.useState(0);
   const [discountReason, setDiscountReason] = React.useState('');
   const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>('cash');
   const [paymentMode, setPaymentMode] = React.useState<'full' | 'partial' | 'unpaid'>('full');
-  const [partialAmount, setPartialAmount] = React.useState(0);
+  const [partialAmount, setPartialAmount] = React.useState(
+    () => Math.round((preview?.calculation.baseAmount ?? 0) / 2)
+  );
   const [referenceNote, setReferenceNote] = React.useState('');
   const [submitting, setSubmitting] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    let active = true;
-    fetch(`/api/sessions/${sessionId}/checkout`, { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((json: CheckoutPreview & { error?: string }) => {
-        if (!active) return;
-        if (json.error) {
-          setError(json.error);
-          return;
-        }
-        setPreview(json);
-        setPartialAmount(Math.round(json.calculation.baseAmount / 2));
-      })
-      .catch(() => {
-        if (active) setError('Failed to load checkout summary');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [sessionId]);
+  const [error, setError] = React.useState<string | null>(initial.error ?? null);
 
   const baseAmount = preview?.calculation.baseAmount ?? 0;
   const finalPayable = Math.max(
@@ -88,24 +68,16 @@ function CheckoutModalBody({
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/sessions/${sessionId}/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          additionalCharges: Number(additionalCharges) || 0,
-          discountAmount: Number(discountAmount) || 0,
-          discountReason: discountReason.trim() || null,
-          paymentMethod,
-          paidAmount,
-          referenceNote: referenceNote.trim() || null,
-        }),
+      const res = checkoutSessionById(sessionId, {
+        additionalCharges: Number(additionalCharges) || 0,
+        discountAmount: Number(discountAmount) || 0,
+        discountReason: discountReason.trim() || null,
+        paymentMethod,
+        paidAmount,
+        referenceNote: referenceNote.trim() || null,
       });
-      const json = (await res.json()) as {
-        error?: string;
-        receipt?: ReceiptData;
-      };
       if (!res.ok) {
-        setError(json.error || 'Checkout failed');
+        setError(res.error || 'Checkout failed');
         return;
       }
       notify(
@@ -118,11 +90,9 @@ function CheckoutModalBody({
       );
       onClose();
       await refresh();
-      if (json.receipt) {
-        openReceiptModal(json.receipt);
+      if (res.receipt) {
+        openReceiptModal(res.receipt);
       }
-    } catch {
-      setError('Network error during checkout');
     } finally {
       setSubmitting(false);
     }
@@ -136,15 +106,11 @@ function CheckoutModalBody({
       subtitle={
         preview
           ? `${preview.session.station_name} • ${preview.session.session_code}`
-          : 'Calculating final bill...'
+          : 'Session checkout'
       }
       maxWidth="max-w-xl"
     >
-      {loading ? (
-        <div className="py-10 text-center text-sm text-[#646D67]">
-          Calculating server-side billable duration...
-        </div>
-      ) : preview ? (
+      {preview ? (
         <form onSubmit={handleCheckout} className="space-y-4">
           <div className="rounded-lg border border-[#DFD9C8] bg-[#F5F2E9]/80 p-3.5 space-y-2 text-xs">
             <div className="flex items-center justify-between">
