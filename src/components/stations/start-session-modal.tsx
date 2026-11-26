@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { FieldLabel, Input, Select } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { type StartModalOptions, useGameZone } from '@/context/gamezone-context';
+import { startSessions } from '@/lib/demo-store';
 import { calculateRentalAmount } from '@/lib/timer';
 import { formatINR } from '@/lib/utils';
 import type { BillingMode } from '@/lib/types';
@@ -126,19 +127,14 @@ function StartSessionModalBody({
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch('/api/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          stationIds: selectedIds,
-          billingMode,
-          plannedDurationMinutes: plannedMinutes,
-          bookingId: opts.bookingId || null,
-        }),
+      const res = startSessions({
+        stationIds: selectedIds,
+        billingMode,
+        plannedDurationMinutes: plannedMinutes,
+        bookingId: opts.bookingId || null,
       });
-      const json = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(json.error || 'Could not start session');
+        setError(res.error || 'Could not start session');
         return;
       }
       notify(
@@ -149,8 +145,6 @@ function StartSessionModalBody({
       );
       onClose();
       await refresh();
-    } catch {
-      setError('Network error while starting session');
     } finally {
       setSubmitting(false);
     }

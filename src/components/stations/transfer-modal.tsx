@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { FieldLabel, Select } from '@/components/ui/input';
 import { useGameZone } from '@/context/gamezone-context';
+import { transferSessionById } from '@/lib/demo-store';
 
 export function TransferModal() {
   const { transferSessionId, closeTransferModal } = useGameZone();
@@ -52,21 +53,14 @@ function TransferModalBody({
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/sessions/${session.id}/transfer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetStationId, keepOriginalRate }),
-      });
-      const json = (await res.json()) as { error?: string };
+      const res = transferSessionById(session.id, targetStationId, keepOriginalRate);
       if (!res.ok) {
-        setError(json.error || 'Transfer failed');
+        setError(res.error || 'Transfer failed');
         return;
       }
       notify(`Transferred ${session.session_code} successfully`, 'success');
       onClose();
       await refresh();
-    } catch {
-      setError('Network error during transfer');
     } finally {
       setSubmitting(false);
     }
