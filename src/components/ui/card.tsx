@@ -11,7 +11,7 @@ export function Card({
   return (
     <div
       className={cn(
-        'rounded-xl border border-[#DFD9C8] bg-[#FCFBF7] shadow-[0_1px_2px_rgba(32,39,35,0.04)]',
+        'rounded-xl border border-[#1E2420]/10 bg-[#FCFBF7] shadow-[0_1px_2px_rgba(30,36,32,0.04)]',
         className
       )}
     >
@@ -34,13 +34,13 @@ export function CardHeader({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-4 border-b border-[#EAE5D7] px-5 py-3.5',
+        'flex items-center justify-between gap-4 border-b border-[#1E2420]/8 px-5 py-4',
         className
       )}
     >
       <div>
-        <h3 className="text-sm font-semibold text-[#202723]">{title}</h3>
-        {subtitle && <p className="text-xs text-[#646D67] mt-0.5">{subtitle}</p>}
+        <h3 className="text-sm font-medium text-[#1E2420]">{title}</h3>
+        {subtitle && <p className="text-xs text-[#707973] mt-1">{subtitle}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>

@@ -10,7 +10,7 @@ export const Input = React.forwardRef<
   <input
     ref={ref}
     className={cn(
-      'h-9 w-full rounded-lg border border-[#D4CEBC] bg-[#FFFFFF] px-3 text-sm text-[#202723] placeholder:text-[#8E9690] focus:border-[#285943] focus:outline-none focus:ring-2 focus:ring-[#285943]/15 disabled:bg-[#EDE9DD] disabled:text-[#646D67]',
+      'h-9 w-full rounded-[8px] border border-[#1E2420]/15 bg-white px-3 text-sm text-[#1E2420] placeholder:text-[#707973] transition-[border-color,background-color] duration-150 focus:border-[#285943] focus:outline-none focus:ring-2 focus:ring-[#285943]/15 disabled:bg-[#EDE9DD] disabled:text-[#707973]',
       className
     )}
     {...props}
@@ -25,7 +25,7 @@ export const Select = React.forwardRef<
   <select
     ref={ref}
     className={cn(
-      'h-9 w-full rounded-lg border border-[#D4CEBC] bg-[#FFFFFF] px-3 text-sm text-[#202723] focus:border-[#285943] focus:outline-none focus:ring-2 focus:ring-[#285943]/15 disabled:bg-[#EDE9DD]',
+      'h-9 w-full rounded-[8px] border border-[#1E2420]/15 bg-white px-3 text-sm text-[#1E2420] transition-[border-color,background-color] duration-150 focus:border-[#285943] focus:outline-none focus:ring-2 focus:ring-[#285943]/15 disabled:bg-[#EDE9DD]',
       className
     )}
     {...props}
@@ -42,7 +42,7 @@ export const Textarea = React.forwardRef<
   <textarea
     ref={ref}
     className={cn(
-      'w-full rounded-lg border border-[#D4CEBC] bg-[#FFFFFF] px-3 py-2 text-sm text-[#202723] placeholder:text-[#8E9690] focus:border-[#285943] focus:outline-none focus:ring-2 focus:ring-[#285943]/15',
+      'w-full rounded-[8px] border border-[#1E2420]/15 bg-white px-3 py-2 text-sm text-[#1E2420] placeholder:text-[#707973] transition-[border-color,background-color] duration-150 focus:border-[#285943] focus:outline-none focus:ring-2 focus:ring-[#285943]/15',
       className
     )}
     {...props}
@@ -60,14 +60,14 @@ export function FieldLabel({
   hint?: string;
 }) {
   return (
-    <div className="flex items-baseline justify-between mb-1.5">
+    <div className="flex items-baseline justify-between mb-2">
       <label
         htmlFor={htmlFor}
-        className="text-xs font-semibold text-[#202723] tracking-tight"
+        className="text-xs font-medium text-[#1E2420]"
       >
         {children}
       </label>
-      {hint && <span className="text-[11px] text-[#646D67]">{hint}</span>}
+      {hint && <span className="text-xs text-[#707973]">{hint}</span>}
     </div>
   );
 }

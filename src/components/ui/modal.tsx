@@ -33,32 +33,32 @@ export function Modal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 no-print">
       <div
-        className="fixed inset-0 bg-[#202723]/55 backdrop-blur-[1px]"
+        className="fixed inset-0 bg-[#1E2420]/50"
         onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
         className={cn(
-          'relative z-10 w-full rounded-xl border border-[#DFD9C8] bg-[#FCFBF7] shadow-xl flex flex-col max-h-[90vh]',
+          'relative z-10 w-full rounded-2xl border border-[#1E2420]/10 bg-[#FCFBF7] shadow-[0_8px_24px_rgba(30,36,32,0.10)] flex flex-col max-h-[90vh]',
           maxWidth
         )}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-[#EAE5D7] px-5 py-4 shrink-0">
+        <div className="flex items-start justify-between gap-4 border-b border-[#1E2420]/8 px-6 py-4 shrink-0">
           <div>
-            <h2 className="text-base font-semibold text-[#202723]">{title}</h2>
-            {subtitle && <p className="text-xs text-[#646D67] mt-0.5">{subtitle}</p>}
+            <h2 className="text-base font-medium text-[#1E2420]">{title}</h2>
+            {subtitle && <p className="text-xs text-[#707973] mt-1">{subtitle}</p>}
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[#646D67] hover:bg-[#EDE9DD] hover:text-[#202723] cursor-pointer"
+            className="rounded-[8px] p-2 text-[#707973] transition-colors duration-150 hover:bg-[#EDE9DD] hover:text-[#1E2420] cursor-pointer"
             aria-label="Close modal"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" strokeWidth={1.5} />
           </button>
         </div>
-        <div className="overflow-y-auto px-5 py-4">{children}</div>
+        <div className="overflow-y-auto px-6 py-5">{children}</div>
       </div>
     </div>
   );
