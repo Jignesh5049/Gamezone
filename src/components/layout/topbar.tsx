@@ -4,7 +4,6 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Bell,
-  KeyRound,
   LogOut,
   Menu,
   Play,
@@ -67,20 +66,23 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
     : [];
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-[#DFD9C8] bg-[#FCFBF7]/95 backdrop-blur-xs px-4 lg:px-6 no-print">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-[#1E2420]/10 bg-[#FCFBF7] px-4 lg:px-6 no-print">
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <button
           type="button"
           onClick={onOpenMobileMenu}
-          className="lg:hidden rounded-lg p-1.5 text-[#202723] hover:bg-[#EDE9DD] cursor-pointer"
+          className="lg:hidden rounded-[8px] p-2 text-[#1E2420] hover:bg-[#EDE9DD] cursor-pointer"
           aria-label="Open navigation"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-4 w-4" strokeWidth={1.5} />
         </button>
 
         {/* Global Search */}
         <div ref={searchRef} className="relative w-full max-w-xs sm:max-w-sm">
-          <Search className="h-3.5 w-3.5 text-[#8E9690] absolute left-3 top-2.5" />
+          <Search
+            className="h-4 w-4 text-[#707973] absolute left-3 top-2.5"
+            strokeWidth={1.5}
+          />
           <input
             type="text"
             value={searchQuery}
@@ -89,14 +91,14 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
               setSearchQuery(e.target.value);
               setSearchOpen(true);
             }}
-            placeholder="Search stations or active sessions..."
-            className="h-8 w-full rounded-lg border border-[#D4CEBC] bg-[#F5F2E9]/70 pl-8 pr-3 text-xs text-[#202723] placeholder:text-[#8E9690] focus:border-[#285943] focus:bg-white focus:outline-none"
+            placeholder="Search stations or sessions"
+            className="h-9 w-full rounded-[8px] border border-[#1E2420]/12 bg-[#F5F2E9] pl-9 pr-3 text-sm text-[#1E2420] placeholder:text-[#707973] transition-[border-color,background-color] duration-150 focus:border-[#285943] focus:bg-white focus:outline-none"
           />
 
           {searchOpen && q.length > 0 && (
-            <div className="absolute left-0 right-0 top-10 rounded-xl border border-[#DFD9C8] bg-[#FCFBF7] shadow-xl p-2 z-50 max-h-80 overflow-y-auto text-xs space-y-2">
+            <div className="absolute left-0 right-0 top-11 rounded-xl border border-[#1E2420]/10 bg-[#FCFBF7] shadow-[0_8px_24px_rgba(30,36,32,0.08)] p-2 z-50 max-h-80 overflow-y-auto text-xs space-y-2">
               {matchedSessions.length === 0 && matchedStations.length === 0 ? (
-                <div className="p-2 text-[#646D67]">
+                <div className="p-2 text-[#525B55]">
                   No quick match.{' '}
                   <button
                     type="button"
@@ -104,7 +106,7 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
                       setSearchOpen(false);
                       router.push(`/sessions?search=${encodeURIComponent(searchQuery)}`);
                     }}
-                    className="text-[#285943] font-semibold underline cursor-pointer"
+                    className="text-[#285943] font-medium underline cursor-pointer"
                   >
                     Search all sessions
                   </button>
@@ -113,8 +115,8 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
                 <>
                   {matchedSessions.length > 0 && (
                     <div>
-                      <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#646D67]">
-                        Active Sessions
+                      <div className="px-2 py-1 text-xs font-medium text-[#707973]">
+                        Active sessions
                       </div>
                       {matchedSessions.map((s) => (
                         <button
@@ -124,12 +126,12 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
                             setSearchOpen(false);
                             openSessionDetailModal(s.id);
                           }}
-                          className="w-full text-left flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-[#EDE9DD] cursor-pointer"
+                          className="w-full text-left flex items-center justify-between rounded-[8px] px-2 py-2 hover:bg-[#EDE9DD] cursor-pointer"
                         >
-                          <span className="font-medium">
+                          <span className="font-medium text-[#1E2420]">
                             {s.station_name}
                           </span>
-                          <span className="font-mono text-[11px] text-[#285943]">
+                          <span className="font-mono text-xs text-[#285943]">
                             {s.session_code}
                           </span>
                         </button>
@@ -138,8 +140,8 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
                   )}
                   {matchedStations.length > 0 && (
                     <div>
-                      <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#646D67]">
-                        Gaming Stations
+                      <div className="px-2 py-1 text-xs font-medium text-[#707973]">
+                        Gaming stations
                       </div>
                       {matchedStations.map((st) => (
                         <button
@@ -149,9 +151,9 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
                             setSearchOpen(false);
                             router.push('/');
                           }}
-                          className="w-full text-left flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-[#EDE9DD] cursor-pointer"
+                          className="w-full text-left flex items-center justify-between rounded-[8px] px-2 py-2 hover:bg-[#EDE9DD] cursor-pointer"
                         >
-                          <span className="font-medium">{st.name}</span>
+                          <span className="font-medium text-[#1E2420]">{st.name}</span>
                           <Badge
                             tone={
                               st.status === 'available'
@@ -178,10 +180,10 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {/* Live IST Clock */}
         <div
-          className="hidden xl:flex items-center gap-1.5 rounded-lg border border-[#EAE5D7] bg-[#F5F2E9] px-2.5 py-1 font-mono text-[11px] text-[#202723] tabular-nums"
+          className="hidden xl:flex items-center gap-2 font-mono text-xs text-[#525B55] tabular-nums pr-1"
           suppressHydrationWarning
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-[#285943]" />
+          <span className="h-2 w-2 rounded-full bg-[#285943]" />
           {formatISTDateTime(new Date(nowMs).toISOString())} IST
         </div>
 
@@ -189,13 +191,13 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
         <button
           type="button"
           onClick={toggleSound}
-          className="hidden sm:flex h-8 w-8 items-center justify-center rounded-lg border border-[#D4CEBC] bg-white text-[#202723] hover:bg-[#EDE9DD] cursor-pointer"
+          className="hidden sm:flex h-8 w-8 items-center justify-center rounded-[8px] border border-[#1E2420]/12 bg-white text-[#525B55] transition-colors duration-150 hover:bg-[#EDE9DD] hover:text-[#1E2420] cursor-pointer"
           title={soundEnabled ? 'Sound alerts on' : 'Sound alerts muted'}
         >
           {soundEnabled ? (
-            <Volume2 className="h-3.5 w-3.5 text-[#285943]" />
+            <Volume2 className="h-4 w-4 text-[#285943]" strokeWidth={1.5} />
           ) : (
-            <VolumeX className="h-3.5 w-3.5 text-[#646D67]" />
+            <VolumeX className="h-4 w-4 text-[#707973]" strokeWidth={1.5} />
           )}
         </button>
 
@@ -204,35 +206,35 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
           <button
             type="button"
             onClick={() => setNotifOpen((o) => !o)}
-            className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-[#D4CEBC] bg-white text-[#202723] hover:bg-[#EDE9DD] cursor-pointer"
+            className="relative flex h-8 w-8 items-center justify-center rounded-[8px] border border-[#1E2420]/12 bg-white text-[#525B55] transition-colors duration-150 hover:bg-[#EDE9DD] hover:text-[#1E2420] cursor-pointer"
             aria-label="Notifications"
           >
-            <Bell className="h-3.5 w-3.5" />
+            <Bell className="h-4 w-4" strokeWidth={1.5} />
             {data.notifications.length > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#C65D50] px-1 font-mono text-[10px] font-bold text-white">
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#C65D50] px-1 font-mono text-[10px] font-medium text-white tabular-nums">
                 {data.notifications.length}
               </span>
             )}
           </button>
 
           {notifOpen && (
-            <div className="absolute right-0 top-10 w-80 rounded-xl border border-[#DFD9C8] bg-[#FCFBF7] shadow-xl z-50 overflow-hidden">
-              <div className="flex items-center justify-between border-b border-[#EAE5D7] px-3.5 py-2.5">
-                <span className="text-xs font-semibold text-[#202723]">
-                  Live Alerts ({data.notifications.length})
+            <div className="absolute right-0 top-10 w-80 rounded-xl border border-[#1E2420]/10 bg-[#FCFBF7] shadow-[0_8px_24px_rgba(30,36,32,0.08)] z-50 overflow-hidden">
+              <div className="flex items-center justify-between border-b border-[#1E2420]/8 px-4 py-3">
+                <span className="text-xs font-medium text-[#1E2420]">
+                  Live alerts ({data.notifications.length})
                 </span>
                 <button
                   type="button"
                   onClick={toggleSound}
-                  className="text-[11px] font-medium text-[#285943] hover:underline cursor-pointer"
+                  className="text-xs font-medium text-[#285943] hover:underline cursor-pointer"
                 >
                   {soundEnabled ? 'Mute chimes' : 'Enable chimes'}
                 </button>
               </div>
-              <div className="max-h-72 overflow-y-auto divide-y divide-[#EAE5D7]">
+              <div className="max-h-72 overflow-y-auto divide-y divide-[#1E2420]/8">
                 {data.notifications.length === 0 ? (
-                  <div className="p-4 text-center text-xs text-[#646D67]">
-                    All clear — no pending alerts.
+                  <div className="p-4 text-center text-xs text-[#707973]">
+                    No pending alerts
                   </div>
                 ) : (
                   data.notifications.map((n) => (
@@ -244,10 +246,10 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
                         else if (n.type === 'pending_payment') router.push('/sessions?paymentStatus=unpaid');
                         else if (n.type === 'maintenance') router.push('/inventory');
                       }}
-                      className="px-3.5 py-2.5 hover:bg-[#EDE9DD]/60 cursor-pointer"
+                      className="px-4 py-3 hover:bg-[#EDE9DD]/60 cursor-pointer"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-semibold text-[#202723]">{n.title}</span>
+                        <span className="text-xs font-medium text-[#1E2420]">{n.title}</span>
                         <Badge
                           tone={
                             n.type === 'expired' || n.type === 'critical'
@@ -260,7 +262,7 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
                           {n.type.replace('_', ' ')}
                         </Badge>
                       </div>
-                      <p className="text-[11px] text-[#646D67] mt-0.5">{n.message}</p>
+                      <p className="text-xs text-[#525B55] mt-1">{n.message}</p>
                     </div>
                   ))
                 )}
@@ -269,18 +271,9 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
           )}
         </div>
 
-        {/* JWT Badge */}
-        <span
-          className="hidden md:inline-flex items-center gap-1 rounded-md border border-[#285943]/25 bg-[#285943]/10 px-2 py-1 font-mono text-[10px] font-semibold text-[#285943]"
-          title={`Signed HS256 JWT (${data.staff.email})`}
-        >
-          <KeyRound className="h-3 w-3" />
-          JWT Demo
-        </span>
-
         {/* Add Session CTA */}
         <Button size="sm" onClick={() => openStartModal()}>
-          <Play className="h-3.5 w-3.5" />
+          <Play className="h-4 w-4" strokeWidth={1.5} />
           <span className="hidden sm:inline">Add Session</span>
           <span className="sm:hidden">Start</span>
         </Button>
@@ -289,10 +282,10 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
         <button
           type="button"
           onClick={logout}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#D4CEBC] bg-white text-[#646D67] hover:bg-[#C65D50]/10 hover:text-[#C65D50] cursor-pointer"
-          title="Sign out (clear JWT)"
+          className="flex h-8 w-8 items-center justify-center rounded-[8px] border border-[#1E2420]/12 bg-white text-[#707973] transition-colors duration-150 hover:bg-[#C65D50]/10 hover:text-[#C65D50] cursor-pointer"
+          title="Sign out"
         >
-          <LogOut className="h-3.5 w-3.5" />
+          <LogOut className="h-4 w-4" strokeWidth={1.5} />
         </button>
       </div>
     </header>

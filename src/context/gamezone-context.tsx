@@ -221,8 +221,8 @@ export function GameZoneProvider({ children }: { children: React.ReactNode }) {
   if (!jwtPayload || !data) {
     return (
       <div className="min-h-screen bg-[#F5F2E9] flex items-center justify-center p-6">
-        <div className="rounded-xl border border-[#DFD9C8] bg-[#FCFBF7] px-6 py-4 text-xs font-medium text-[#5A635D]">
-          Verifying JWT session...
+        <div className="rounded-xl border border-[#1E2420]/10 bg-[#FCFBF7] px-6 py-4 text-xs font-medium text-[#525B55]">
+          Loading workspace
         </div>
       </div>
     );
@@ -267,12 +267,12 @@ export function GameZoneProvider({ children }: { children: React.ReactNode }) {
           {toasts.map((t) => (
             <div
               key={t.id}
-              className={`rounded-lg border px-4 py-2.5 text-xs font-medium shadow-lg ${
+              className={`rounded-[10px] border px-4 py-3 text-xs font-medium shadow-[0_8px_24px_rgba(30,36,32,0.12)] ${
                 t.tone === 'error'
-                  ? 'bg-[#C65D50] text-white border-[#a74438]'
+                  ? 'bg-[#C65D50] text-white border-[#A74438]'
                   : t.tone === 'info'
-                    ? 'bg-[#202723] text-[#F5F2E9] border-[#333d37]'
-                    : 'bg-[#285943] text-[#FCFBF7] border-[#214a37]'
+                    ? 'bg-[#1E2420] text-[#F2EFE7] border-[#2E3631]'
+                    : 'bg-[#285943] text-[#FCFBF7] border-[#214A37]'
               }`}
             >
               {t.message}
