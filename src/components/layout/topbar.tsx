@@ -4,6 +4,8 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Bell,
+  KeyRound,
+  LogOut,
   Menu,
   Play,
   Search,
@@ -20,6 +22,7 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
   const {
     data,
     nowMs,
+    logout,
     openStartModal,
     openSessionDetailModal,
     soundEnabled,
@@ -266,12 +269,31 @@ export function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
           )}
         </div>
 
+        {/* JWT Badge */}
+        <span
+          className="hidden md:inline-flex items-center gap-1 rounded-md border border-[#285943]/25 bg-[#285943]/10 px-2 py-1 font-mono text-[10px] font-semibold text-[#285943]"
+          title={`Signed HS256 JWT (${data.staff.email})`}
+        >
+          <KeyRound className="h-3 w-3" />
+          JWT Demo
+        </span>
+
         {/* Add Session CTA */}
         <Button size="sm" onClick={() => openStartModal()}>
           <Play className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Add Session</span>
           <span className="sm:hidden">Start</span>
         </Button>
+
+        {/* Sign Out */}
+        <button
+          type="button"
+          onClick={logout}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#D4CEBC] bg-white text-[#646D67] hover:bg-[#C65D50]/10 hover:text-[#C65D50] cursor-pointer"
+          title="Sign out (clear JWT)"
+        >
+          <LogOut className="h-3.5 w-3.5" />
+        </button>
       </div>
     </header>
   );

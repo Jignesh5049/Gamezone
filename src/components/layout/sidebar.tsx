@@ -12,6 +12,7 @@ import {
   FileSpreadsheet,
   Gamepad2,
   IndianRupee,
+  RotateCcw,
   Wrench,
   X,
 } from 'lucide-react';
@@ -40,7 +41,7 @@ export function Sidebar({
   onCloseMobile: () => void;
 }) {
   const pathname = usePathname();
-  const { data } = useGameZone();
+  const { data, resetDemo } = useGameZone();
   const liveCount = data.activeSessions.length;
 
   const content = (
@@ -128,6 +129,14 @@ export function Sidebar({
             <span>Timezone</span>
             <span className="font-mono text-[#F5F2E9]">IST (UTC+5:30)</span>
           </div>
+          <button
+            type="button"
+            onClick={resetDemo}
+            className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#344039] bg-[#2B352F] px-2.5 py-1.5 text-[11px] font-medium text-[#F5F2E9] hover:bg-[#344039] cursor-pointer"
+          >
+            <RotateCcw className="h-3 w-3" />
+            Reset Demo Data
+          </button>
         </div>
       )}
     </div>
