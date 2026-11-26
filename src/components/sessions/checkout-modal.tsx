@@ -112,36 +112,36 @@ function CheckoutModalBody({
     >
       {preview ? (
         <form onSubmit={handleCheckout} className="space-y-4">
-          <div className="rounded-lg border border-[#DFD9C8] bg-[#F5F2E9]/80 p-3.5 space-y-2 text-xs">
+          <div className="rounded-[8px] border border-[#1E2420]/10 bg-[#F5F2E9] p-4 space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-[#646D67]">Game & Station</span>
-              <span className="font-semibold text-[#202723]">
+              <span className="text-[#707973]">Game & station</span>
+              <span className="font-medium text-[#1E2420]">
                 {preview.session.category_name} — {preview.session.station_name}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[#646D67]">Start → End (IST)</span>
-              <span className="font-mono text-[11px] text-[#202723]">
+              <span className="text-[#707973]">Start to end (IST)</span>
+              <span className="font-mono text-xs text-[#1E2420] tabular-nums">
                 {formatISTDateTime(preview.session.started_at)} →{' '}
                 {formatISTDateTime(preview.serverNow)}
               </span>
             </div>
-            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#DFD9C8]">
+            <div className="grid grid-cols-3 gap-3 pt-2 border-t border-[#1E2420]/10">
               <div>
-                <div className="text-[11px] text-[#646D67]">Total Playing</div>
-                <div className="font-mono font-semibold text-[#202723]">
+                <div className="text-xs text-[#707973]">Total playing</div>
+                <div className="font-mono font-medium text-[#1E2420] tabular-nums mt-0.5">
                   {formatDurationHMS(preview.metrics.billableElapsedSeconds)}
                 </div>
               </div>
               <div>
-                <div className="text-[11px] text-[#646D67]">Paused (Excluded)</div>
-                <div className="font-mono font-semibold text-[#8E5B13]">
+                <div className="text-xs text-[#707973]">Paused</div>
+                <div className="font-mono font-medium text-[#8E5B13] tabular-nums mt-0.5">
                   {formatDurationHMS(preview.metrics.totalPausedSeconds)}
                 </div>
               </div>
               <div>
-                <div className="text-[11px] text-[#646D67]">Billable Time</div>
-                <div className="font-mono font-semibold text-[#285943]">
+                <div className="text-xs text-[#707973]">Billable time</div>
+                <div className="font-mono font-medium text-[#285943] tabular-nums mt-0.5">
                   {formatMinutesReadable(preview.calculation.billableMinutes)}
                 </div>
               </div>
@@ -149,9 +149,9 @@ function CheckoutModalBody({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="rounded-lg border border-[#DFD9C8] bg-white p-3">
-              <div className="text-[11px] text-[#646D67]">Base Rental</div>
-              <div className="font-mono text-base font-bold text-[#202723] mt-0.5">
+            <div className="rounded-[8px] border border-[#1E2420]/10 bg-white p-3">
+              <div className="text-xs text-[#707973]">Base rental</div>
+              <div className="font-mono text-base font-medium text-[#1E2420] tabular-nums mt-1">
                 {formatINR(baseAmount)}
               </div>
               {preview.calculation.overtimeMinutes > 0 && (
@@ -162,14 +162,14 @@ function CheckoutModalBody({
             </div>
 
             <div>
-              <FieldLabel htmlFor="add-charges">Additional Charges (₹)</FieldLabel>
+              <FieldLabel htmlFor="add-charges">Additional charges (₹)</FieldLabel>
               <Input
                 id="add-charges"
                 type="number"
                 min={0}
                 value={additionalCharges}
                 onChange={(e) => setAdditionalCharges(Number(e.target.value))}
-                placeholder="Snacks, drinks..."
+                placeholder="Snacks or drinks"
               />
             </div>
 
@@ -187,42 +187,44 @@ function CheckoutModalBody({
           </div>
 
           {Number(discountAmount) > 0 && (
-            <div className="rounded-lg border border-[#D89B45]/40 bg-[#D89B45]/10 p-3">
-              <FieldLabel htmlFor="disc-reason">Discount Reason (Optional)</FieldLabel>
+            <div className="rounded-[8px] border border-[#B77922]/30 bg-[#B77922]/10 p-3">
+              <FieldLabel htmlFor="disc-reason" hint="Optional">
+                Discount reason
+              </FieldLabel>
               <Input
                 id="disc-reason"
                 value={discountReason}
                 onChange={(e) => setDiscountReason(e.target.value)}
-                placeholder="e.g., Member promo / goodwill"
+                placeholder="Promo or goodwill"
               />
             </div>
           )}
 
-          <div className="flex items-center justify-between rounded-lg bg-[#202723] text-[#F5F2E9] px-4 py-3">
-            <span className="text-xs font-medium uppercase tracking-wider text-[#A8B8A0]">
-              Final Amount Payable
+          <div className="flex items-center justify-between rounded-[8px] bg-[#1E2420] text-[#F2EFE7] px-4 py-3">
+            <span className="text-xs font-medium text-[#B4BCB5]">
+              Final amount payable
             </span>
-            <span className="font-mono text-2xl font-bold tabular-nums">
+            <span className="font-mono text-2xl font-medium tabular-nums">
               {formatINR(finalPayable)}
             </span>
           </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <FieldLabel>Payment Status</FieldLabel>
-              <div className="flex gap-1.5">
+              <FieldLabel>Payment status</FieldLabel>
+              <div className="flex gap-2">
                 {(['full', 'partial', 'unpaid'] as const).map((m) => (
                   <button
                     type="button"
                     key={m}
                     onClick={() => setPaymentMode(m)}
-                    className={`rounded-md border px-2.5 py-1 text-xs font-semibold capitalize cursor-pointer ${
+                    className={`rounded-[6px] border px-3 py-1 text-xs font-medium cursor-pointer transition-colors duration-150 ${
                       paymentMode === m
                         ? 'border-[#285943] bg-[#285943] text-white'
-                        : 'border-[#D4CEBC] bg-white text-[#202723]'
+                        : 'border-[#1E2420]/15 bg-white text-[#1E2420] hover:bg-[#EDE9DD]'
                     }`}
                   >
-                    {m === 'full' ? 'Mark Paid' : m === 'partial' ? 'Partial' : 'Pending / Unpaid'}
+                    {m === 'full' ? 'Mark paid' : m === 'partial' ? 'Partial' : 'Unpaid'}
                   </button>
                 ))}
               </div>
@@ -243,22 +245,22 @@ function CheckoutModalBody({
                       type="button"
                       key={id}
                       onClick={() => setPaymentMethod(id)}
-                      className={`flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-semibold cursor-pointer ${
+                      className={`flex items-center justify-center gap-2 h-9 rounded-[8px] border text-xs font-medium cursor-pointer transition-colors duration-150 ${
                         paymentMethod === id
-                          ? 'border-[#285943] bg-[#285943]/12 text-[#285943]'
-                          : 'border-[#D4CEBC] bg-white text-[#202723]'
+                          ? 'border-[#285943] bg-[#285943]/10 text-[#285943]'
+                          : 'border-[#1E2420]/15 bg-white text-[#1E2420] hover:bg-[#EDE9DD]'
                       }`}
                     >
-                      <Icon className="h-3.5 w-3.5" />
+                      <Icon className="h-4 w-4" strokeWidth={1.5} />
                       {label}
                     </button>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {paymentMode === 'partial' && (
                     <div>
-                      <FieldLabel htmlFor="partial-amt">Amount Received Now (₹)</FieldLabel>
+                      <FieldLabel htmlFor="partial-amt">Amount received now (₹)</FieldLabel>
                       <Input
                         id="partial-amt"
                         type="number"
@@ -271,13 +273,13 @@ function CheckoutModalBody({
                   )}
                   <div className={paymentMode === 'partial' ? '' : 'sm:col-span-2'}>
                     <FieldLabel htmlFor="ref-note" hint="Optional">
-                      Payment Reference / Note
+                      Payment reference
                     </FieldLabel>
                     <Input
                       id="ref-note"
                       value={referenceNote}
                       onChange={(e) => setReferenceNote(e.target.value)}
-                      placeholder="UPI txn ID, card last 4 digits..."
+                      placeholder="UPI ref or last 4 digits"
                     />
                   </div>
                 </div>
@@ -286,21 +288,21 @@ function CheckoutModalBody({
           </div>
 
           {error && (
-            <div className="rounded-lg border border-[#C65D50]/30 bg-[#C65D50]/10 px-3 py-2 text-xs text-[#A74438]">
+            <div className="rounded-[8px] border border-[#C65D50]/25 bg-[#C65D50]/10 px-3 py-2 text-xs text-[#A74438]">
               {error}
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#EAE5D7]">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#1E2420]/8">
             <Button variant="outline" onClick={onClose}>
-              Keep Running
+              Keep running
             </Button>
             <Button type="submit" disabled={submitting}>
               {submitting
-                ? 'Finalizing...'
+                ? 'Finalizing'
                 : paymentMode === 'unpaid'
-                  ? 'End & Mark Unpaid'
-                  : `Confirm & Collect ${formatINR(paidAmount)}`}
+                  ? 'End & mark unpaid'
+                  : `Confirm & collect ${formatINR(paidAmount)}`}
             </Button>
           </div>
         </form>

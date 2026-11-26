@@ -12,7 +12,6 @@ import {
   Wrench,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useGameZone } from '@/context/gamezone-context';
 import {
   calculateRentalAmount,
@@ -64,31 +63,31 @@ export function StationCard({
       : null;
 
   // Color coding per spec:
-  // Green: Available | Red: Occupied | Orange/Amber: Session ending soon / Paused | Grey: Maintenance / Disabled
-  let statusBarColor = 'bg-[#285943]';
-  let statusBadgeTone: 'green' | 'red' | 'amber' | 'grey' = 'green';
+  // Green: Available | Red: Occupied | Amber: Ending soon / Paused | Grey: Maintenance / Disabled
+  let dotColor = 'bg-[#285943]';
+  let statusTextColor = 'text-[#285943]';
   let statusLabel = 'Available';
 
   if (station.status === 'maintenance' || station.status === 'disabled') {
-    statusBarColor = 'bg-[#7A827D]';
-    statusBadgeTone = 'grey';
+    dotColor = 'bg-[#707973]';
+    statusTextColor = 'text-[#525B55]';
     statusLabel = station.status === 'maintenance' ? 'Maintenance' : 'Disabled';
   } else if (session && metrics) {
     if (metrics.isPaused) {
-      statusBarColor = 'bg-[#D89B45]';
-      statusBadgeTone = 'amber';
+      dotColor = 'bg-[#B77922]';
+      statusTextColor = 'text-[#8E5B13]';
       statusLabel = 'Paused';
     } else if (metrics.alertLevel === 'warning' || metrics.alertLevel === 'critical') {
-      statusBarColor = 'bg-[#D89B45]';
-      statusBadgeTone = 'amber';
-      statusLabel = 'Ending Soon';
+      dotColor = 'bg-[#B77922]';
+      statusTextColor = 'text-[#8E5B13]';
+      statusLabel = 'Ending soon';
     } else if (metrics.alertLevel === 'expired') {
-      statusBarColor = 'bg-[#C65D50]';
-      statusBadgeTone = 'red';
-      statusLabel = 'Time Exceeded';
+      dotColor = 'bg-[#C65D50]';
+      statusTextColor = 'text-[#A74438]';
+      statusLabel = 'Time exceeded';
     } else {
-      statusBarColor = 'bg-[#C65D50]';
-      statusBadgeTone = 'red';
+      dotColor = 'bg-[#C65D50]';
+      statusTextColor = 'text-[#A74438]';
       statusLabel = 'Occupied';
     }
   }
@@ -102,245 +101,242 @@ export function StationCard({
     }
   };
 
+  const progressRatio = metrics
+    ? Math.min(1, Math.max(0, metrics.progressPercent / 100))
+    : 0;
+
   return (
     <div
       className={cn(
-        'relative flex flex-col justify-between rounded-xl border bg-[#FCFBF7] transition-shadow hover:shadow-sm overflow-hidden',
+        'relative flex flex-col justify-between rounded-xl border bg-[#FCFBF7] transition-[border-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] hover:shadow-[0_2px_8px_rgba(30,36,32,0.06)]',
+        compact ? 'p-4' : 'p-4',
         metrics?.alertLevel === 'expired'
-          ? 'border-[#C65D50] ring-1 ring-[#C65D50]/35'
+          ? 'border-[#C65D50]/55'
           : metrics?.alertLevel === 'warning' || metrics?.alertLevel === 'critical'
-            ? 'border-[#D89B45]'
-            : 'border-[#DFD9C8]'
+            ? 'border-[#B77922]/50'
+            : 'border-[#1E2420]/10'
       )}
     >
-      {/* Top Status Accent Strip */}
-      <div className={cn('h-1.5 w-full', statusBarColor)} />
-
-      <div className={cn('flex-1 flex flex-col justify-between', compact ? 'p-3.5' : 'p-4')}>
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#646D67]">
-                {station.code}
-              </span>
-              <span className="text-[#D4CEBC]">•</span>
-              <span className="text-[11px] font-medium text-[#646D67] truncate">
-                {station.category_name}
-              </span>
-            </div>
-            <h4 className="text-sm font-bold text-[#202723] truncate mt-0.5">
-              {station.name}
-            </h4>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 text-xs text-[#707973]">
+            <span className="font-mono">{station.code}</span>
+            <span>·</span>
+            <span className="truncate">{station.category_name}</span>
           </div>
-          <Badge tone={statusBadgeTone}>{statusLabel}</Badge>
+          <h4 className="text-[15px] font-medium text-[#1E2420] truncate mt-1">
+            {station.name}
+          </h4>
         </div>
+        <span className={cn('inline-flex items-center gap-2 text-xs font-medium shrink-0 pt-0.5', statusTextColor)}>
+          <span className={cn('h-2 w-2 rounded-full', dotColor)} />
+          {statusLabel}
+        </span>
+      </div>
 
-        {/* Body */}
-        {station.status === 'maintenance' || station.status === 'disabled' ? (
-          <div className="my-3 rounded-lg border border-[#DFD9C8] bg-[#EDE9DD]/60 p-3 text-xs text-[#5A635D]">
-            <div className="flex items-center gap-1.5 font-semibold text-[#202723]">
-              <Wrench className="h-3.5 w-3.5 text-[#646D67]" />
-              {station.status === 'maintenance' ? 'Under Maintenance' : 'Temporarily Disabled'}
-            </div>
-            <p className="mt-1 text-[11px] line-clamp-2">
-              {station.notes || 'Unavailable for customer sessions.'}
-            </p>
+      {/* Body */}
+      {station.status === 'maintenance' || station.status === 'disabled' ? (
+        <div className="my-3 rounded-[8px] border border-[#1E2420]/8 bg-[#EDE9DD]/70 p-3 text-xs text-[#525B55]">
+          <div className="flex items-center gap-2 font-medium text-[#1E2420]">
+            <Wrench className="h-4 w-4 text-[#707973]" strokeWidth={1.5} />
+            {station.status === 'maintenance' ? 'Under maintenance' : 'Temporarily disabled'}
           </div>
-        ) : session && metrics && calc ? (
-          <div className="my-3 space-y-2.5">
-            {/* Session Code & Start Time */}
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-mono font-medium text-[#202723] truncate">
-                {session.session_code}
-              </span>
-              <span className="font-mono text-[11px] text-[#646D67] shrink-0">
-                Started {formatISTTime(session.started_at)}
-              </span>
-            </div>
+          <p className="mt-1 text-xs line-clamp-2">
+            {station.notes || 'Unavailable for sessions'}
+          </p>
+        </div>
+      ) : session && metrics && calc ? (
+        <div className="my-3 space-y-2">
+          {/* Session Code & Start Time */}
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-mono font-medium text-[#1E2420] truncate">
+              {session.session_code}
+            </span>
+            <span className="font-mono text-[#707973] shrink-0 tabular-nums">
+              Started {formatISTTime(session.started_at)}
+            </span>
+          </div>
 
-            {/* Live Timer & Amount Box */}
-            <div className="rounded-lg border border-[#EAE5D7] bg-[#F5F2E9]/90 p-2.5">
-              <div className="flex items-baseline justify-between gap-2">
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-[#646D67] font-semibold">
-                    Elapsed
-                  </div>
-                  <div className="font-mono text-lg font-bold text-[#202723] tabular-nums leading-tight">
-                    {formatDurationHMS(metrics.billableElapsedSeconds)}
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <div className="text-[10px] uppercase tracking-wider text-[#646D67] font-semibold">
-                    {metrics.remainingSeconds !== null
-                      ? metrics.remainingSeconds < 0
-                        ? 'Overtime'
-                        : 'Remaining'
-                      : 'Charge'}
-                  </div>
-                  {metrics.remainingSeconds !== null ? (
-                    <div
-                      className={cn(
-                        'font-mono text-sm font-bold tabular-nums leading-tight',
-                        metrics.remainingSeconds <= 0
-                          ? 'text-[#C65D50]'
-                          : metrics.alertLevel === 'critical'
-                            ? 'text-[#C65D50]'
-                            : metrics.alertLevel === 'warning'
-                              ? 'text-[#8E5B13]'
-                              : 'text-[#285943]'
-                      )}
-                    >
-                      {formatDurationHMS(metrics.remainingSeconds)}
-                    </div>
-                  ) : (
-                    <div className="font-mono text-sm font-bold text-[#285943] tabular-nums">
-                      {formatINR(calc.baseAmount)}
-                    </div>
-                  )}
+          {/* Live Timer & Amount Box */}
+          <div className="rounded-[8px] border border-[#1E2420]/8 bg-[#F5F2E9] p-3">
+            <div className="flex items-baseline justify-between gap-2">
+              <div>
+                <div className="text-xs text-[#707973]">Elapsed</div>
+                <div className="font-mono text-xl font-medium text-[#1E2420] tabular-nums leading-none mt-1">
+                  {formatDurationHMS(metrics.billableElapsedSeconds)}
                 </div>
               </div>
 
-              {/* Progress Bar for Fixed Duration */}
-              {session.billing_mode === 'fixed' && (
-                <div className="mt-2 h-1.5 w-full rounded-full bg-[#DFD9C8] overflow-hidden">
+              <div className="text-right">
+                <div className="text-xs text-[#707973]">
+                  {metrics.remainingSeconds !== null
+                    ? metrics.remainingSeconds < 0
+                      ? 'Overtime'
+                      : 'Remaining'
+                    : 'Charge'}
+                </div>
+                {metrics.remainingSeconds !== null ? (
                   <div
                     className={cn(
-                      'h-full transition-all duration-500',
-                      metrics.alertLevel === 'expired' || metrics.alertLevel === 'critical'
-                        ? 'bg-[#C65D50]'
-                        : metrics.alertLevel === 'warning' || metrics.isPaused
-                          ? 'bg-[#D89B45]'
-                          : 'bg-[#285943]'
+                      'font-mono text-sm font-medium tabular-nums leading-none mt-1',
+                      metrics.remainingSeconds <= 0
+                        ? 'text-[#C65D50]'
+                        : metrics.alertLevel === 'critical'
+                          ? 'text-[#C65D50]'
+                          : metrics.alertLevel === 'warning'
+                            ? 'text-[#8E5B13]'
+                            : 'text-[#285943]'
                     )}
-                    style={{ width: `${metrics.progressPercent}%` }}
-                  />
-                </div>
-              )}
-
-              <div className="mt-2 flex items-center justify-between text-[11px] text-[#5A635D]">
-                <span>
-                  Current Charge:{' '}
-                  <strong className="font-mono text-[#202723]">
+                  >
+                    {formatDurationHMS(metrics.remainingSeconds)}
+                  </div>
+                ) : (
+                  <div className="font-mono text-sm font-medium text-[#285943] tabular-nums leading-none mt-1">
                     {formatINR(calc.baseAmount)}
-                  </strong>
-                </span>
-                {metrics.estimatedEndAtIso && (
-                  <span className="font-mono">
-                    Ends {formatISTTime(metrics.estimatedEndAtIso)}
-                  </span>
+                  </div>
                 )}
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="my-3 rounded-lg border border-dashed border-[#D4CEBC] bg-[#F5F2E9]/50 p-3 flex items-center justify-between">
-            <div>
-              <div className="text-xs font-semibold text-[#285943]">Ready for Play</div>
-              <div className="text-[11px] text-[#646D67] mt-0.5">
-                {station.effective_pricing
-                  ? `₹${station.effective_pricing.rate_30min}/30m • ₹${station.effective_pricing.rate_60min}/hr`
-                  : 'Standard pricing'}
-              </div>
-            </div>
-            <Clock className="h-4 w-4 text-[#A8B8A0]" />
-          </div>
-        )}
 
-        {/* Contextual Actions */}
-        {station.status === 'available' && !session && (
-          <Button
-            size="sm"
-            className="w-full"
-            onClick={() => openStartModal({ stationId: station.id })}
-          >
-            <Play className="h-3.5 w-3.5" />
-            Start Session
-          </Button>
-        )}
-
-        {session && metrics && (
-          <div className="space-y-1.5">
-            <div className="grid grid-cols-2 gap-1.5">
-              {metrics.isPaused ? (
-                <Button
-                  size="xs"
-                  variant="amber"
-                  disabled={busyAction !== null}
-                  onClick={() => runAction('resume', () => resumeSession(session.id))}
-                >
-                  <Play className="h-3 w-3" />
-                  Resume
-                </Button>
-              ) : (
-                <Button
-                  size="xs"
-                  variant="outline"
-                  disabled={busyAction !== null}
-                  onClick={() => runAction('pause', () => pauseSession(session.id))}
-                >
-                  <Pause className="h-3 w-3" />
-                  Pause
-                </Button>
-              )}
-
-              <Button
-                size="xs"
-                variant="danger"
-                disabled={busyAction !== null}
-                onClick={() => openCheckoutModal(session.id)}
-              >
-                <Square className="h-3 w-3" />
-                End Session
-              </Button>
-            </div>
-
-            {!compact && (
-              <div className="flex items-center gap-1 pt-0.5">
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  className="flex-1 px-1.5 text-[11px]"
-                  disabled={busyAction !== null}
-                  onClick={() => runAction('ext15', () => extendSession(session.id, 15))}
-                >
-                  <Plus className="h-3 w-3" />
-                  15m
-                </Button>
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  className="flex-1 px-1.5 text-[11px]"
-                  disabled={busyAction !== null}
-                  onClick={() => runAction('ext30', () => extendSession(session.id, 30))}
-                >
-                  <Plus className="h-3 w-3" />
-                  30m
-                </Button>
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  className="px-2 text-[11px]"
-                  title="Transfer station"
-                  onClick={() => openTransferModal(session.id)}
-                >
-                  <ArrowRightLeft className="h-3 w-3" />
-                </Button>
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  className="px-2 text-[11px]"
-                  title="View session details"
-                  onClick={() => openSessionDetailModal(session.id)}
-                >
-                  <Eye className="h-3 w-3" />
-                </Button>
+            {/* Progress Bar for Fixed Duration */}
+            {session.billing_mode === 'fixed' && (
+              <div className="mt-3 h-1 w-full rounded-full bg-[#1E2420]/10 overflow-hidden">
+                <div
+                  className={cn(
+                    'h-full w-full origin-left transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                    metrics.alertLevel === 'expired' || metrics.alertLevel === 'critical'
+                      ? 'bg-[#C65D50]'
+                      : metrics.alertLevel === 'warning' || metrics.isPaused
+                        ? 'bg-[#B77922]'
+                        : 'bg-[#285943]'
+                  )}
+                  style={{ transform: `scaleX(${progressRatio})` }}
+                />
               </div>
             )}
+
+            <div className="mt-2 flex items-center justify-between text-xs text-[#525B55]">
+              <span>
+                Charge:{' '}
+                <span className="font-mono font-medium text-[#1E2420] tabular-nums">
+                  {formatINR(calc.baseAmount)}
+                </span>
+              </span>
+              {metrics.estimatedEndAtIso && (
+                <span className="font-mono tabular-nums">
+                  Ends {formatISTTime(metrics.estimatedEndAtIso)}
+                </span>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="my-3 rounded-[8px] border border-[#1E2420]/8 bg-[#F5F2E9]/60 p-3 flex items-center justify-between">
+          <div>
+            <div className="text-xs font-medium text-[#285943]">Ready</div>
+            <div className="font-mono text-xs text-[#525B55] mt-1 tabular-nums">
+              {station.effective_pricing
+                ? `₹${station.effective_pricing.rate_30min}/30m · ₹${station.effective_pricing.rate_60min}/hr`
+                : 'Standard pricing'}
+            </div>
+          </div>
+          <Clock className="h-4 w-4 text-[#707973]" strokeWidth={1.5} />
+        </div>
+      )}
+
+      {/* Contextual Actions */}
+      {station.status === 'available' && !session && (
+        <Button
+          size="sm"
+          className="w-full"
+          onClick={() => openStartModal({ stationId: station.id })}
+        >
+          <Play className="h-4 w-4" strokeWidth={1.5} />
+          Start session
+        </Button>
+      )}
+
+      {session && metrics && (
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            {metrics.isPaused ? (
+              <Button
+                size="xs"
+                variant="amber"
+                disabled={busyAction !== null}
+                onClick={() => runAction('resume', () => resumeSession(session.id))}
+              >
+                <Play className="h-4 w-4" strokeWidth={1.5} />
+                Resume
+              </Button>
+            ) : (
+              <Button
+                size="xs"
+                variant="outline"
+                disabled={busyAction !== null}
+                onClick={() => runAction('pause', () => pauseSession(session.id))}
+              >
+                <Pause className="h-4 w-4" strokeWidth={1.5} />
+                Pause
+              </Button>
+            )}
+
+            <Button
+              size="xs"
+              variant="danger"
+              disabled={busyAction !== null}
+              onClick={() => openCheckoutModal(session.id)}
+            >
+              <Square className="h-4 w-4" strokeWidth={1.5} />
+              End session
+            </Button>
+          </div>
+
+          {!compact && (
+            <div className="flex items-center gap-1">
+              <Button
+                size="xs"
+                variant="ghost"
+                className="flex-1 px-2"
+                disabled={busyAction !== null}
+                onClick={() => runAction('ext15', () => extendSession(session.id, 15))}
+              >
+                <Plus className="h-4 w-4" strokeWidth={1.5} />
+                15m
+              </Button>
+              <Button
+                size="xs"
+                variant="ghost"
+                className="flex-1 px-2"
+                disabled={busyAction !== null}
+                onClick={() => runAction('ext30', () => extendSession(session.id, 30))}
+              >
+                <Plus className="h-4 w-4" strokeWidth={1.5} />
+                30m
+              </Button>
+              <Button
+                size="xs"
+                variant="ghost"
+                className="px-2"
+                title="Transfer station"
+                onClick={() => openTransferModal(session.id)}
+              >
+                <ArrowRightLeft className="h-4 w-4" strokeWidth={1.5} />
+              </Button>
+              <Button
+                size="xs"
+                variant="ghost"
+                className="px-2"
+                title="View session details"
+                onClick={() => openSessionDetailModal(session.id)}
+              >
+                <Eye className="h-4 w-4" strokeWidth={1.5} />
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

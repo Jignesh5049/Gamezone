@@ -25,102 +25,100 @@ export function ReceiptModal() {
       subtitle={`Receipt #${receiptData.receiptNumber}`}
       maxWidth="max-w-md"
     >
-      <div className="print-only-area space-y-4 text-xs text-[#202723]">
-        <div className="text-center border-b border-dashed border-[#D4CEBC] pb-3">
-          <div className="text-base font-bold tracking-tight text-[#202723]">
+      <div className="print-only-area space-y-4 text-xs text-[#1E2420]">
+        <div className="text-center border-b border-dashed border-[#1E2420]/20 pb-3">
+          <div className="text-base font-medium text-[#1E2420]">
             {receiptData.zoneName}
           </div>
           {receiptData.zoneAddress && (
-            <div className="text-[11px] text-[#646D67] mt-0.5">{receiptData.zoneAddress}</div>
+            <div className="text-xs text-[#707973] mt-1">{receiptData.zoneAddress}</div>
           )}
           {receiptData.zonePhone && (
-            <div className="text-[11px] text-[#646D67]">{receiptData.zonePhone}</div>
+            <div className="text-xs text-[#707973]">{receiptData.zonePhone}</div>
           )}
         </div>
 
-        <div className="space-y-1.5 border-b border-dashed border-[#D4CEBC] pb-3">
+        <div className="space-y-2 border-b border-dashed border-[#1E2420]/20 pb-3">
           <div className="flex justify-between">
-            <span className="text-[#646D67]">Receipt No:</span>
-            <span className="font-mono font-semibold">{receiptData.receiptNumber}</span>
+            <span className="text-[#707973]">Receipt no</span>
+            <span className="font-mono font-medium">{receiptData.receiptNumber}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#646D67]">Session ID:</span>
+            <span className="text-[#707973]">Session ID</span>
             <span className="font-mono">{session.session_code}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#646D67]">Date & Time (IST):</span>
-            <span>{formatISTDateTime(receiptData.issuedAt)}</span>
+            <span className="text-[#707973]">Date & time (IST)</span>
+            <span className="font-mono tabular-nums">{formatISTDateTime(receiptData.issuedAt)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#646D67]">Facility:</span>
-            <span className="font-semibold">
+            <span className="text-[#707973]">Facility</span>
+            <span className="font-medium">
               {session.category_name} — {session.station_name}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#646D67]">Session Time:</span>
+            <span className="text-[#707973]">Session time</span>
             <span>{formatMinutesReadable(session.billable_minutes)} billable</span>
           </div>
         </div>
 
-        <div className="space-y-1.5 border-b border-dashed border-[#D4CEBC] pb-3">
+        <div className="space-y-2 border-b border-dashed border-[#1E2420]/20 pb-3">
           <div className="flex justify-between">
-            <span>
-              Rental Charge (₹{session.rate_30min}/30m)
-            </span>
-            <span className="font-mono">{formatINR(session.base_amount)}</span>
+            <span>Rental charge (₹{session.rate_30min}/30m)</span>
+            <span className="font-mono tabular-nums">{formatINR(session.base_amount)}</span>
           </div>
           {session.additional_charges > 0 && (
             <div className="flex justify-between">
-              <span>Additional Charges</span>
-              <span className="font-mono">{formatINR(session.additional_charges)}</span>
+              <span>Additional charges</span>
+              <span className="font-mono tabular-nums">{formatINR(session.additional_charges)}</span>
             </div>
           )}
           {session.discount_amount > 0 && (
             <div className="flex justify-between text-[#285943]">
               <span>Discount{session.discount_reason ? ` (${session.discount_reason})` : ''}</span>
-              <span className="font-mono">-{formatINR(session.discount_amount)}</span>
+              <span className="font-mono tabular-nums">-{formatINR(session.discount_amount)}</span>
             </div>
           )}
-          <div className="flex justify-between text-sm font-bold pt-1.5 border-t border-[#EAE5D7]">
-            <span>Total Payable</span>
-            <span className="font-mono">{formatINR(session.final_amount)}</span>
+          <div className="flex justify-between text-sm font-medium pt-2 border-t border-[#1E2420]/10">
+            <span>Total payable</span>
+            <span className="font-mono tabular-nums">{formatINR(session.final_amount)}</span>
           </div>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-[#646D67]">Payment Method:</span>
-            <span className="font-semibold uppercase">
+            <span className="text-[#707973]">Payment method</span>
+            <span className="font-mono font-medium uppercase">
               {latestPayment?.method || session.payment_status}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#646D67]">Paid Amount:</span>
-            <span className="font-mono font-semibold text-[#285943]">
+            <span className="text-[#707973]">Paid amount</span>
+            <span className="font-mono font-medium text-[#285943] tabular-nums">
               {formatINR(session.paid_amount)}
             </span>
           </div>
           {balance > 0 && (
-            <div className="flex justify-between text-[#C65D50] font-semibold">
-              <span>Balance Pending:</span>
-              <span className="font-mono">{formatINR(balance)}</span>
+            <div className="flex justify-between text-[#C65D50] font-medium">
+              <span>Balance pending</span>
+              <span className="font-mono tabular-nums">{formatINR(balance)}</span>
             </div>
           )}
         </div>
 
-        <div className="text-center text-[11px] text-[#646D67] pt-2 border-t border-dashed border-[#D4CEBC]">
-          {data.settings.receipt_footer || 'Thank you for playing with us!'}
+        <div className="text-center text-xs text-[#707973] pt-3 border-t border-dashed border-[#1E2420]/20">
+          {data.settings.receipt_footer || 'Thank you for playing at Apex Arena'}
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-[#EAE5D7] no-print">
+      <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-[#1E2420]/8 no-print">
         <Button variant="outline" onClick={closeReceiptModal}>
           Close
         </Button>
         <Button onClick={() => window.print()}>
-          <Printer className="h-3.5 w-3.5" />
-          Print Receipt
+          <Printer className="h-4 w-4" strokeWidth={1.5} />
+          Print receipt
         </Button>
       </div>
     </Modal>

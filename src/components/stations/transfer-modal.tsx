@@ -76,13 +76,13 @@ function TransferModalBody({
     >
       <form onSubmit={handleTransfer} className="space-y-4">
         {availableTargets.length === 0 ? (
-          <div className="rounded-lg border border-[#C65D50]/30 bg-[#C65D50]/10 p-3 text-xs text-[#A74438]">
-            No other stations are currently available for transfer.
+          <div className="rounded-[8px] border border-[#C65D50]/25 bg-[#C65D50]/10 p-3 text-xs text-[#A74438]">
+            No other stations are currently available for transfer
           </div>
         ) : (
           <>
             <div>
-              <FieldLabel>Destination Station</FieldLabel>
+              <FieldLabel>Destination station</FieldLabel>
               <Select
                 value={targetStationId}
                 onChange={(e) => setTargetStationId(e.target.value)}
@@ -95,7 +95,7 @@ function TransferModalBody({
               </Select>
             </div>
 
-            <label className="flex items-center gap-2 text-xs text-[#202723] cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-[#1E2420] cursor-pointer">
               <input
                 type="checkbox"
                 checked={keepOriginalRate}
@@ -108,12 +108,12 @@ function TransferModalBody({
         )}
 
         {error && (
-          <div className="rounded-lg border border-[#C65D50]/30 bg-[#C65D50]/10 px-3 py-2 text-xs text-[#A74438]">
+          <div className="rounded-[8px] border border-[#C65D50]/25 bg-[#C65D50]/10 px-3 py-2 text-xs text-[#A74438]">
             {error}
           </div>
         )}
 
-        <div className="flex justify-end gap-2 pt-2 border-t border-[#EAE5D7]">
+        <div className="flex justify-end gap-2 pt-3 border-t border-[#1E2420]/8">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
@@ -121,8 +121,8 @@ function TransferModalBody({
             type="submit"
             disabled={submitting || availableTargets.length === 0}
           >
-            <ArrowRightLeft className="h-3.5 w-3.5" />
-            {submitting ? 'Transferring...' : 'Transfer Session'}
+            <ArrowRightLeft className="h-4 w-4" strokeWidth={1.5} />
+            {submitting ? 'Transferring' : 'Transfer session'}
           </Button>
         </div>
       </form>

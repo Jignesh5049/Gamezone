@@ -160,15 +160,15 @@ function StartSessionModalBody({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {availableStations.length === 0 ? (
-          <div className="rounded-lg border border-[#C65D50]/30 bg-[#C65D50]/10 p-4 text-sm text-[#A74438]">
-            All gaming stations are currently occupied or under maintenance.
+          <div className="rounded-[8px] border border-[#C65D50]/25 bg-[#C65D50]/10 p-4 text-sm text-[#A74438]">
+            All gaming stations are currently occupied or under maintenance
           </div>
         ) : (
           <>
             {/* 1. Category Selection */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <FieldLabel htmlFor="session-category">Game Category</FieldLabel>
+              <div className="flex items-center justify-between mb-2">
+                <FieldLabel htmlFor="session-category">Game category</FieldLabel>
                 <button
                   type="button"
                   onClick={() => {
@@ -181,10 +181,10 @@ function StartSessionModalBody({
                       if (first) setSelectedCategoryId(first.category_id);
                     }
                   }}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#285943] hover:underline cursor-pointer"
+                  className="inline-flex items-center gap-2 text-xs font-medium text-[#285943] hover:underline cursor-pointer"
                 >
-                  <Users className="h-3.5 w-3.5" />
-                  {groupMode ? 'Single Station' : 'Group Booking'}
+                  <Users className="h-4 w-4" strokeWidth={1.5} />
+                  {groupMode ? 'Single station' : 'Group booking'}
                 </button>
               </div>
               {!groupMode && (
@@ -210,13 +210,13 @@ function StartSessionModalBody({
             {/* 2. Station Name Dropdown (Filtered to available stations in selected category) */}
             <div>
               <FieldLabel htmlFor="session-station">
-                {groupMode ? 'Select Available Stations' : 'Station Name'}
+                {groupMode ? 'Select available stations' : 'Station name'}
               </FieldLabel>
 
               {!groupMode ? (
                 categoryAvailableStations.length === 0 ? (
-                  <div className="rounded-lg border border-[#D89B45]/40 bg-[#D89B45]/10 px-3 py-2.5 text-xs text-[#8E5B13]">
-                    No available stations in this category right now. Choose another category.
+                  <div className="rounded-[8px] border border-[#B77922]/30 bg-[#B77922]/10 px-3 py-3 text-xs text-[#8E5B13]">
+                    No available stations in this category right now — choose another category
                   </div>
                 ) : (
                   <Select
@@ -240,14 +240,14 @@ function StartSessionModalBody({
                         type="button"
                         key={st.id}
                         onClick={() => toggleStationSelection(st.id)}
-                        className={`text-left rounded-lg border px-2.5 py-2 text-xs transition-colors cursor-pointer ${
+                        className={`text-left rounded-[8px] border px-3 py-2 text-xs transition-colors duration-150 cursor-pointer ${
                           checked
-                            ? 'border-[#285943] bg-[#285943]/10 text-[#202723] font-semibold'
-                            : 'border-[#D4CEBC] bg-white text-[#5A635D] hover:bg-[#EDE9DD]'
+                            ? 'border-[#285943] bg-[#285943]/10 text-[#1E2420] font-medium'
+                            : 'border-[#1E2420]/15 bg-white text-[#525B55] hover:bg-[#EDE9DD]'
                         }`}
                       >
                         <div className="truncate">{st.name}</div>
-                        <div className="text-[11px] text-[#646D67]">
+                        <div className="font-mono text-xs text-[#707973] mt-0.5">
                           ₹{st.effective_pricing?.rate_30min ?? 100}/30m
                         </div>
                       </button>
@@ -259,7 +259,7 @@ function StartSessionModalBody({
 
             {/* 3. Booking Duration Dropdown */}
             <div>
-              <FieldLabel htmlFor="session-duration">Booking Duration</FieldLabel>
+              <FieldLabel htmlFor="session-duration">Booking duration</FieldLabel>
               <Select
                 id="session-duration"
                 value={durationChoice}
@@ -285,24 +285,24 @@ function StartSessionModalBody({
                     onChange={(e) => setCustomMinutes(Number(e.target.value))}
                     className="w-32"
                   />
-                  <span className="text-xs text-[#646D67]">minutes</span>
+                  <span className="text-xs text-[#707973]">minutes</span>
                 </div>
               )}
             </div>
 
             {/* 4. Calculated Price Display */}
-            <div className="flex items-center justify-between rounded-lg border border-[#285943]/25 bg-[#285943]/8 px-4 py-3">
-              <div className="flex items-center gap-2.5">
-                <Clock className="h-4 w-4 text-[#285943]" />
+            <div className="flex items-center justify-between rounded-[8px] border border-[#285943]/20 bg-[#285943]/8 p-4">
+              <div className="flex items-center gap-3">
+                <Clock className="h-4 w-4 text-[#285943] shrink-0" strokeWidth={1.5} />
                 <div>
-                  <div className="text-xs font-semibold text-[#202723]">
+                  <div className="text-xs font-medium text-[#1E2420]">
                     {billingMode === 'fixed'
-                      ? `Calculated Price (${plannedMinutes} min)`
-                      : 'Open Timer (Est. 1 Hour Rate)'}
+                      ? `Calculated price (${plannedMinutes} min)`
+                      : 'Open timer (est. 1 hour rate)'}
                   </div>
-                  <div className="text-[11px] text-[#5A635D]">
+                  <div className="text-xs text-[#525B55] mt-0.5">
                     {selectedStations.length > 0
-                      ? `${selectedStations.map((s) => s.name).join(', ')} • ₹${
+                      ? `${selectedStations.map((s) => s.name).join(', ')} · ₹${
                           selectedStations[0]?.effective_pricing?.rate_30min ?? 100
                         }/30m`
                       : 'Select an available station'}
@@ -310,24 +310,24 @@ function StartSessionModalBody({
                 </div>
               </div>
               <div className="text-right">
-                <div className="font-mono text-xl font-bold text-[#285943] tabular-nums">
+                <div className="font-mono text-2xl font-medium text-[#285943] tabular-nums">
                   {formatINR(totalCalculatedPrice)}
                 </div>
                 {selectedStations.some(
                   (s) => (s.effective_pricing?.offer_discount_percent ?? 0) > 0
-                ) && <Badge tone="amber">Offer Applied</Badge>}
+                ) && <Badge tone="amber">Offer applied</Badge>}
               </div>
             </div>
           </>
         )}
 
         {error && (
-          <div className="rounded-lg border border-[#C65D50]/30 bg-[#C65D50]/10 px-3 py-2 text-xs text-[#A74438]">
+          <div className="rounded-[8px] border border-[#C65D50]/30 bg-[#C65D50]/10 px-3 py-2 text-xs text-[#A74438]">
             {error}
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#EAE5D7]">
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#1E2420]/8">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
@@ -335,8 +335,8 @@ function StartSessionModalBody({
             type="submit"
             disabled={submitting || availableStations.length === 0 || selectedIds.length === 0}
           >
-            <Play className="h-3.5 w-3.5" />
-            {submitting ? 'Starting...' : 'Start Session'}
+            <Play className="h-4 w-4" strokeWidth={1.5} />
+            {submitting ? 'Starting' : 'Start session'}
           </Button>
         </div>
       </form>
