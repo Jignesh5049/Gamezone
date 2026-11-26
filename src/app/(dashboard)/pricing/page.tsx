@@ -8,14 +8,24 @@ import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { FieldLabel, Input, Select } from '@/components/ui/input';
 import { useGameZone } from '@/context/gamezone-context';
+import {
+  createPricingRule,
+  deletePricingRule,
+  listPricingRules,
+  updatePricingRule,
+} from '@/lib/demo-store';
 import { calculateRentalAmount } from '@/lib/timer';
 import { formatINR } from '@/lib/utils';
 import type { BillingMode, PricingRule } from '@/lib/types';
 
 export default function PricingPage() {
   const { data, refresh, notify } = useGameZone();
-  const [rules, setRules] = React.useState<PricingRule[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [tick, setTick] = React.useState(0);
+  const rules = React.useMemo(() => {
+    void data;
+    void tick;
+    return listPricingRules();
+  }, [data, tick]);
 
   const [modalOpen, setModalOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<PricingRule | null>(null);
@@ -29,36 +39,9 @@ export default function PricingPage() {
   const [offerLabel, setOfferLabel] = React.useState('');
   const [offerPct, setOfferPct] = React.useState(0);
 
-  // Price Simulator
-  const [simRuleId, setSimRuleId] = React.useState('');
+  const [simRuleId, setSimRuleId] = React.useState(() => rules[0]?.id || '');
   const [simMinutes, setSimMinutes] = React.useState(75);
   const [simMode, setSimMode] = React.useState<BillingMode>('pay_as_you_play');
-
-  const loadRules = React.useCallback(async () => {
-    const res = await fetch('/api/pricing', { cache: 'no-store' });
-    const json = (await res.json()) as { rules: PricingRule[] };
-    setRules(json.rules || []);
-    setSimRuleId((prev) => prev || json.rules?.[0]?.id || '');
-    setLoading(false);
-  }, []);
-
-  React.useEffect(() => {
-    let active = true;
-    fetch('/api/pricing', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((json: { rules: PricingRule[] }) => {
-        if (!active) return;
-        setRules(json.rules || []);
-        setSimRuleId((prev) => prev || json.rules?.[0]?.id || '');
-        setLoading(false);
-      })
-      .catch(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const openAdd = () => {
     setEditing(null);
@@ -90,42 +73,43 @@ export default function PricingPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editing ? `/api/pricing/${editing.id}` : '/api/pricing';
-    const method = editing ? 'PATCH' : 'POST';
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        categoryId,
-        stationId: stationId || null,
-        name,
-        rate30Min: Number(rate30),
-        rate60Min: Number(rate60),
-        customHourlyRate: Number(rate60),
-        defaultBillingMode: billingMode,
-        billingIncrementMinutes: increment,
-        offerLabel: offerLabel || null,
-        offerDiscountPercent: Number(offerPct) || 0,
-      }),
-    });
-    const json = (await res.json()) as { error?: string };
+    const res = editing
+      ? updatePricingRule(editing.id, {
+          name,
+          rate30Min: Number(rate30),
+          rate60Min: Number(rate60),
+          defaultBillingMode: billingMode,
+          billingIncrementMinutes: increment,
+          offerLabel: offerLabel || null,
+          offerDiscountPercent: Number(offerPct) || 0,
+        })
+      : createPricingRule({
+          categoryId,
+          stationId: stationId || null,
+          name,
+          rate30Min: Number(rate30),
+          rate60Min: Number(rate60),
+          defaultBillingMode: billingMode,
+          billingIncrementMinutes: increment,
+          offerLabel: offerLabel || null,
+          offerDiscountPercent: Number(offerPct) || 0,
+        });
+
     if (!res.ok) {
-      notify(json.error || 'Could not save pricing rule', 'error');
+      notify(res.error || 'Could not save pricing rule', 'error');
       return;
     }
     notify(editing ? 'Pricing updated' : 'Pricing rule created', 'success');
     setModalOpen(false);
-    await loadRules();
+    setTick((t) => t + 1);
     await refresh();
   };
 
   const handleDelete = async (r: PricingRule) => {
-    const res = await fetch(`/api/pricing/${r.id}`, { method: 'DELETE' });
-    if (res.ok) {
-      notify(`Deleted "${r.name}"`, 'info');
-      await loadRules();
-      await refresh();
-    }
+    deletePricingRule(r.id);
+    notify(`Deleted "${r.name}"`, 'info');
+    setTick((t) => t + 1);
+    await refresh();
   };
 
   const simRule = rules.find((r) => r.id === simRuleId) || rules[0];
@@ -177,67 +161,58 @@ export default function PricingPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAE5D7]">
-                {loading ? (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-[#646D67]">
-                      Loading pricing rules...
+                {rules.map((r) => (
+                  <tr key={r.id} className="hover:bg-[#F5F2E9]/50">
+                    <td className="px-4 py-3 font-semibold text-[#202723]">{r.name}</td>
+                    <td className="px-4 py-3">
+                      {r.station_name ? (
+                        <Badge tone="charcoal">{r.station_name}</Badge>
+                      ) : (
+                        <Badge tone="green">{r.category_name} (Default)</Badge>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-mono font-semibold">
+                      {formatINR(r.rate_30min)}
+                    </td>
+                    <td className="px-4 py-3 font-mono font-semibold text-[#285943]">
+                      {formatINR(r.rate_60min)}
+                    </td>
+                    <td className="px-4 py-3 text-[#5A635D]">
+                      {r.billing_increment_minutes}m •{' '}
+                      {r.default_billing_mode === 'fixed' ? 'Fixed' : 'Pay-as-you-play'}
+                    </td>
+                    <td className="px-4 py-3">
+                      {r.offer_discount_percent > 0 ? (
+                        <Badge tone="amber">
+                          {r.offer_label || 'Offer'} (-{r.offer_discount_percent}%)
+                        </Badge>
+                      ) : (
+                        <span className="text-[#8E9690]">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="inline-flex items-center gap-1">
+                        <Button size="xs" variant="outline" onClick={() => openEdit(r)}>
+                          <Edit2 className="h-3 w-3" /> Edit
+                        </Button>
+                        {r.station_id && (
+                          <Button
+                            size="xs"
+                            variant="ghost"
+                            onClick={() => handleDelete(r)}
+                          >
+                            <Trash2 className="h-3 w-3 text-[#C65D50]" />
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
-                ) : (
-                  rules.map((r) => (
-                    <tr key={r.id} className="hover:bg-[#F5F2E9]/50">
-                      <td className="px-4 py-3 font-semibold text-[#202723]">{r.name}</td>
-                      <td className="px-4 py-3">
-                        {r.station_name ? (
-                          <Badge tone="charcoal">{r.station_name}</Badge>
-                        ) : (
-                          <Badge tone="green">{r.category_name} (Default)</Badge>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 font-mono font-semibold">
-                        {formatINR(r.rate_30min)}
-                      </td>
-                      <td className="px-4 py-3 font-mono font-semibold text-[#285943]">
-                        {formatINR(r.rate_60min)}
-                      </td>
-                      <td className="px-4 py-3 text-[#5A635D]">
-                        {r.billing_increment_minutes}m •{' '}
-                        {r.default_billing_mode === 'fixed' ? 'Fixed' : 'Pay-as-you-play'}
-                      </td>
-                      <td className="px-4 py-3">
-                        {r.offer_discount_percent > 0 ? (
-                          <Badge tone="amber">
-                            {r.offer_label || 'Offer'} (-{r.offer_discount_percent}%)
-                          </Badge>
-                        ) : (
-                          <span className="text-[#8E9690]">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="inline-flex items-center gap-1">
-                          <Button size="xs" variant="outline" onClick={() => openEdit(r)}>
-                            <Edit2 className="h-3 w-3" /> Edit
-                          </Button>
-                          {r.station_id && (
-                            <Button
-                              size="xs"
-                              variant="ghost"
-                              onClick={() => handleDelete(r)}
-                            >
-                              <Trash2 className="h-3 w-3 text-[#C65D50]" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
+                ))}
               </tbody>
             </table>
           </div>
         </Card>
 
-        {/* Transparent Billing Simulator */}
         <Card className="p-4 space-y-4 h-fit">
           <div className="flex items-center gap-2 border-b border-[#EAE5D7] pb-3">
             <Calculator className="h-4 w-4 text-[#285943]" />
@@ -254,7 +229,10 @@ export default function PricingPage() {
           <div className="space-y-3 text-xs">
             <div>
               <FieldLabel>Pricing Rule</FieldLabel>
-              <Select value={simRuleId} onChange={(e) => setSimRuleId(e.target.value)}>
+              <Select
+                value={simRule?.id || ''}
+                onChange={(e) => setSimRuleId(e.target.value)}
+              >
                 {rules.map((r) => (
                   <option key={r.id} value={r.id}>
                     {r.name}
@@ -318,7 +296,6 @@ export default function PricingPage() {
         </Card>
       </div>
 
-      {/* Add / Edit Pricing Modal */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
